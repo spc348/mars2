@@ -10,9 +10,20 @@ package hw2.Operands;
  * @author cahn
  */
 public class AddRegisters extends Add {
+   
+   public String register1;
+   public String register2;
     
-    public AddRegisters(int source1, int source2) {
+    public AddRegisters(String source1, String source2) {
         super(source1, source2);
+        register1 = source1;
+        register2 = source2;
+    }
+    
+    @Override
+    public int action(){
+       return source1 + source2;
+       
     }
     
     @Override

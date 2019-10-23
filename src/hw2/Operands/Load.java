@@ -11,11 +11,15 @@ package hw2.Operands;
  */
 public class Load extends Operand {
 
-    Load(int source1) {
-        super.setSource1(source1);
+    Load(String source1) {
+        super.setSource1(Integer.parseInt(source1));
     }
 
-    @Override
+   /**
+    *
+    * @return
+    */
+   @Override
     public int action() {
         return super.source1;
     }

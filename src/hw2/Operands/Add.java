@@ -11,9 +11,9 @@ package hw2.Operands;
  */
 public class Add extends Operand {
 
-    public Add(int source1, int source2) {
-        super.setSource1(source1);
-        super.setSource2(source2);
+    public Add(String source1, String source2) {
+        super.setSource1(Integer.parseInt(source1));
+        super.setSource2(Integer.parseInt(source2));
     }
 
     @Override
