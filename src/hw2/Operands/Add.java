@@ -33,7 +33,11 @@ public class Add extends Operand {
 
     @Override
     public boolean hasOneSource() {
-       return false;
+        return false;
     }
-    
+
+    @Override
+    public boolean isWriteOperation() {
+        return false;
+    }
 }

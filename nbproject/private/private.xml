@@ -5,6 +5,8 @@
         <group>
             <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/Add.java</file>
             <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/LoadRegister.java</file>
+            <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/Store.java</file>
+            <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/Subtract.java</file>
             <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/Instruction.java</file>
             <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/AddRegisters.java</file>
             <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/Operand.java</file>

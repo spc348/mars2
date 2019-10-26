@@ -33,5 +33,7 @@ public abstract class Operand {
     public abstract boolean usesConstants();
 
     public abstract boolean hasOneSource();
+    
+    public abstract boolean isWriteOperation();
 
 }

@@ -215,7 +215,12 @@ public class MainDisplay extends javax.swing.JFrame {
         instructionIndex = 0;
         instructions.clear();
         for (int i = 0; i < registerTable.getModel().getRowCount(); i++) {
-            registerTable.getModel().setValueAt("", i, REGISTER_TABLE_VALUE);
+            registerTable.getModel().setValueAt("0", i, REGISTER_TABLE_VALUE);
+        }
+        for(int i = 0; i < memoryTable.getModel().getRowCount(); i++){
+            for (int j = 0; j < memoryTable.getModel().getColumnCount(); j++) {
+                registerTable.getModel().setValueAt("0", i, j);
+            }
         }
     }
 

@@ -15,11 +15,11 @@ public class Load extends Operand {
         super.setSource1(Integer.parseInt(source1));
     }
 
-   /**
-    *
-    * @return
-    */
-   @Override
+    /**
+     *
+     * @return
+     */
+    @Override
     public int action() {
         return super.source1;
     }
@@ -37,6 +37,11 @@ public class Load extends Operand {
     @Override
     public boolean hasOneSource() {
         return true;
+    }
+
+    @Override
+    public boolean isWriteOperation() {
+        return false;
     }
 
 }

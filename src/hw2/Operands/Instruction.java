@@ -50,6 +50,9 @@ public class Instruction {
                 operand = new LoadRegister(individualWords[2]);
                 opcode = operand.getOpcode();
                 break;
+            case "stor":
+                operand = new Store(individualWords[2]);
+                opcode = operand.getOpcode();
             default:
                 System.out.println("operation not found");
         }
@@ -63,6 +66,9 @@ public class Instruction {
 
     public int getResult() {
         if (!operand.usesConstants()) {
+            if (operand.isWriteOperation()) {
+                registerTable.getModel().setValueAt(operand.getSource1(), destination, MainDisplay.REGISTER_TABLE_VALUE);
+            }
             String rawMemory = registerTable.getModel().getValueAt(operand.getSource1(), MainDisplay.REGISTER_TABLE_VALUE).toString();
             operand.setSource1(Integer.parseInt(rawMemory));
             if (!operand.hasOneSource()) {
@@ -71,6 +77,7 @@ public class Instruction {
             }
             result = operand.action();
         }
+
         return result;
     }
 
