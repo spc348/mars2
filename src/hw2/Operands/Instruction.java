@@ -15,63 +15,67 @@ import javax.swing.JTable;
  */
 public class Instruction {
 
-   private Operand operand;
-   private int source1;
-   private int source2;
-   private int destination;
-   private int result;
-   private byte opcode;
-   private JTable registerTable;
-   private JTable memoryTable;
-   private boolean oneSource;
+    private Operand operand;
+    private int destination;
+    private int result;
+    private byte opcode;
+    private JTable registerTable;
+    private JTable memoryTable;
 
-   public Instruction(String str, JTable registerTable, JTable memoryTable) {
-      String[] individualWords = str.split(" ");
-      assert (individualWords.length >= 3);
+    public Instruction(String str, JTable registerTable, JTable memoryTable) {
+        String[] individualWords = str.split(" ");
+        assert (individualWords.length >= 3);
 
-      destination = new RegisterLookup(individualWords[1].substring(1)).getRegisterNumber();
+        this.registerTable = registerTable;
+        assert (this.registerTable != null);
 
-      individualWords[0] = individualWords[0].toLowerCase();
+        destination = new RegisterLookup(individualWords[1].substring(1)).getRegisterNumber();
 
-      switch (individualWords[0]) {
-         case "add":
-            operand = new Add(individualWords[2],individualWords[3]);
-            opcode = operand.getOpcode();
-            break;
-         case "addr":
-            operand = new AddRegisters(individualWords[2],individualWords[3]);
-            opcode = operand.getOpcode();
-            break;
-         case "load":
-            operand = new Load(individualWords[2]);
-            opcode = operand.getOpcode();
-            break;
-         case "loadr":
-            operand = new Load(individualWords[2]);
-            opcode = operand.getOpcode();
-            break;
-         default:
-            System.out.println("operation not found");
-      }
+        individualWords[0] = individualWords[0].toLowerCase();
 
-      result = operand.action();
-   }
+        switch (individualWords[0]) {
+            case "add":
+                operand = new Add(individualWords[2], individualWords[3]);
+                opcode = operand.getOpcode();
+                break;
+            case "addr":
+                operand = new AddRegisters(individualWords[2], individualWords[3]);
+                opcode = operand.getOpcode();
+                break;
+            case "load":
+                operand = new Load(individualWords[2]);
+                opcode = operand.getOpcode();
+                break;
+            case "loadr":
+                operand = new LoadRegister(individualWords[2]);
+                opcode = operand.getOpcode();
+                break;
+            default:
+                System.out.println("operation not found");
+        }
 
-   public int getDestination() {
-      return destination;
-   }
+        result = operand.action();
+    }
 
-   public int getResult() {
-      if (!operand.usesConstants()) {
-         operand.setSource1((int) registerTable.getModel().getValueAt(MainDisplay.REGISTER_TABLE_VALUE, source1));
-         operand.setSource2((int) registerTable.getModel().getValueAt(MainDisplay.REGISTER_TABLE_VALUE, source2));
-         result = operand.action();
-      }
-      return result;
-   }
+    public int getDestination() {
+        return destination;
+    }
 
-   public byte getOpcode() {
-      return opcode;
-   }
+    public int getResult() {
+        if (!operand.usesConstants()) {
+            String rawMemory = registerTable.getModel().getValueAt(operand.getSource1(), MainDisplay.REGISTER_TABLE_VALUE).toString();
+            operand.setSource1(Integer.parseInt(rawMemory));
+            if (!operand.hasOneSource()) {
+                rawMemory = registerTable.getModel().getValueAt(operand.getSource2(), MainDisplay.REGISTER_TABLE_VALUE).toString();
+                operand.setSource2(Integer.parseInt(rawMemory));
+            }
+            result = operand.action();
+        }
+        return result;
+    }
+
+    public byte getOpcode() {
+        return opcode;
+    }
 
 }

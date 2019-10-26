@@ -53,7 +53,7 @@ public class MainDisplay extends javax.swing.JFrame {
 
         textEditor.setColumns(20);
         textEditor.setRows(5);
-        textEditor.setText("add 0 1 1");
+        textEditor.setText("add $v1 1 1\nadd $v2 0 3\naddr $v3 $v2 $v1");
         textEditor.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 textEditorKeyTyped(evt);
@@ -227,7 +227,7 @@ public class MainDisplay extends javax.swing.JFrame {
         if (instructionIndex < instructions.size()) {
             Instruction inst = instructions.get(instructionIndex);
             registerTable.getModel().setValueAt(
-                    String.format("0x%08X", inst.getResult()),
+                    Integer.toOctalString(inst.getResult()),
                     inst.getDestination(),
                     REGISTER_TABLE_VALUE
             );

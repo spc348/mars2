@@ -5,19 +5,17 @@
  */
 package hw2.Operands;
 
+import hw2.RegisterLookup;
+
 /**
  *
  * @author cahn
  */
 public class AddRegisters extends Add {
-   
-   public String register1;
-   public String register2;
     
     public AddRegisters(String source1, String source2) {
-        super(source1, source2);
-        register1 = source1;
-        register2 = source2;
+        super(String.valueOf(new RegisterLookup(source1.substring(1)).getRegisterNumber()), 
+                String.valueOf(new RegisterLookup(source2.substring(1)).getRegisterNumber()));
     }
     
     @Override
@@ -28,6 +26,12 @@ public class AddRegisters extends Add {
     
     @Override
     public boolean usesConstants() {
+        return false;
+    }
+    
+    @Override
+    public boolean hasOneSource()
+    {
         return false;
     }
     

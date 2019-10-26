@@ -32,7 +32,7 @@ public class Add extends Operand {
     }
 
     @Override
-    public boolean oneSource() {
+    public boolean hasOneSource() {
        return false;
     }
     

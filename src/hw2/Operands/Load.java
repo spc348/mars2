@@ -35,7 +35,7 @@ public class Load extends Operand {
     }
 
     @Override
-    public boolean oneSource() {
+    public boolean hasOneSource() {
         return true;
     }
 
