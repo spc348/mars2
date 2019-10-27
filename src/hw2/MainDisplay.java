@@ -219,7 +219,7 @@ public class MainDisplay extends javax.swing.JFrame {
         }
         for(int i = 0; i < memoryTable.getModel().getRowCount(); i++){
             for (int j = 0; j < memoryTable.getModel().getColumnCount(); j++) {
-                registerTable.getModel().setValueAt("0", i, j);
+                memoryTable.getModel().setValueAt("0", i, j);
             }
         }
     }

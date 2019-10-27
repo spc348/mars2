@@ -27,7 +27,8 @@ public class Instruction {
         assert (individualWords.length >= 3);
 
         this.registerTable = registerTable;
-        assert (this.registerTable != null);
+        this.memoryTable = memoryTable;
+        assert (this.registerTable != null && this.memoryTable != null);
 
         destination = new RegisterLookup(individualWords[1].substring(1)).getRegisterNumber();
 
@@ -53,6 +54,9 @@ public class Instruction {
             case "stor":
                 operand = new Store(individualWords[2]);
                 opcode = operand.getOpcode();
+            case "storr":
+                operand = new StoreRegister(individualWords[2]);
+                opcode = operand.getOpcode();
             default:
                 System.out.println("operation not found");
         }
@@ -67,7 +71,14 @@ public class Instruction {
     public int getResult() {
         if (!operand.usesConstants()) {
             if (operand.isWriteOperation()) {
-                registerTable.getModel().setValueAt(operand.getSource1(), destination, MainDisplay.REGISTER_TABLE_VALUE);
+                StoreRegister sr = (StoreRegister) operand;
+                String address = registerTable.getModel().getValueAt(sr.getRegisterNumberToWrite(), MainDisplay.REGISTER_TABLE_VALUE).toString();
+                byte parsedAddress = Byte.parseByte(address);
+                parsedAddress += (byte) (sr.getOffset() & 0xFF);
+                int row = parsedAddress / memoryTable.getModel().getRowCount();
+                int col = parsedAddress % memoryTable.getModel().getColumnCount();
+                String rawMemory = registerTable.getModel().getValueAt(destination, MainDisplay.REGISTER_TABLE_VALUE).toString();
+                memoryTable.getModel().setValueAt(Integer.parseInt(rawMemory), row, col);
             }
             String rawMemory = registerTable.getModel().getValueAt(operand.getSource1(), MainDisplay.REGISTER_TABLE_VALUE).toString();
             operand.setSource1(Integer.parseInt(rawMemory));
