@@ -53,7 +53,7 @@ public class MainDisplay extends javax.swing.JFrame {
 
         textEditor.setColumns(20);
         textEditor.setRows(5);
-        textEditor.setText("add $v1 1 1\nadd $v2 0 3\naddr $v3 $v2 $v1");
+        textEditor.setText("add $v1 1 1\nadd $v2 0 011\nstorr $v1 0($v2)");
         textEditor.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 textEditorKeyTyped(evt);

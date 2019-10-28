@@ -3,15 +3,13 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/Add.java</file>
-            <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/LoadRegister.java</file>
-            <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/Store.java</file>
-            <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/Subtract.java</file>
-            <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/Instruction.java</file>
-            <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/AddRegisters.java</file>
-            <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/Operand.java</file>
-            <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/MainDisplay.java</file>
-            <file>file:/C:/Users/sam/Documents/syr-computerarchitecture/mars2/src/hw2/Operands/Load.java</file>
+            <file>file:/home/cahn/jme/HW2/src/hw2/Operands/LoadRegister.java</file>
+            <file>file:/home/cahn/jme/HW2/src/hw2/Operands/StoreRegister.java</file>
+            <file>file:/home/cahn/jme/HW2/src/hw2/RegisterLookup.java</file>
+            <file>file:/home/cahn/jme/HW2/src/hw2/Operands/Instruction.java</file>
+            <file>file:/home/cahn/jme/HW2/src/hw2/MainDisplay.java</file>
+            <file>file:/home/cahn/jme/HW2/src/hw2/Operands/Store.java</file>
+            <file>file:/home/cahn/jme/HW2/src/hw2/Operands/Operand.java</file>
         </group>
     </open-files>
 </project-private>

@@ -54,9 +54,11 @@ public class Instruction {
             case "stor":
                 operand = new Store(individualWords[2]);
                 opcode = operand.getOpcode();
+                break;
             case "storr":
                 operand = new StoreRegister(individualWords[2]);
                 opcode = operand.getOpcode();
+                break;
             default:
                 System.out.println("operation not found");
         }
@@ -69,26 +71,35 @@ public class Instruction {
     }
 
     public int getResult() {
-        if (!operand.usesConstants()) {
-            if (operand.isWriteOperation()) {
-                StoreRegister sr = (StoreRegister) operand;
-                String address = registerTable.getModel().getValueAt(sr.getRegisterNumberToWrite(), MainDisplay.REGISTER_TABLE_VALUE).toString();
-                byte parsedAddress = Byte.parseByte(address);
-                parsedAddress += (byte) (sr.getOffset() & 0xFF);
-                int row = parsedAddress / memoryTable.getModel().getRowCount();
-                int col = parsedAddress % memoryTable.getModel().getColumnCount();
+
+        if (operand.isWriteOperation()) {
+            Store sr = (Store) operand;
+            String address = registerTable.getModel().getValueAt(sr.getRegisterNumberToRead(), MainDisplay.REGISTER_TABLE_VALUE).toString();
+            byte parsedAddress = Byte.parseByte(address);
+            parsedAddress += (byte) (sr.getOffset() & 0xFF);
+            int row = ((int) parsedAddress) / memoryTable.getModel().getRowCount();
+            int col = ((int) parsedAddress) % memoryTable.getModel().getColumnCount();
+
+            int valueToInsert = 0;
+            if (!operand.usesConstants()) {
                 String rawMemory = registerTable.getModel().getValueAt(destination, MainDisplay.REGISTER_TABLE_VALUE).toString();
-                memoryTable.getModel().setValueAt(Integer.parseInt(rawMemory), row, col);
+                valueToInsert = Integer.parseInt(rawMemory);
+            } else {
+                destination = valueToInsert;
             }
-            String rawMemory = registerTable.getModel().getValueAt(operand.getSource1(), MainDisplay.REGISTER_TABLE_VALUE).toString();
-            operand.setSource1(Integer.parseInt(rawMemory));
-            if (!operand.hasOneSource()) {
-                rawMemory = registerTable.getModel().getValueAt(operand.getSource2(), MainDisplay.REGISTER_TABLE_VALUE).toString();
-                operand.setSource2(Integer.parseInt(rawMemory));
+            memoryTable.getModel().setValueAt(valueToInsert, row, col);
+        } else {
+            if (!operand.usesConstants()) {
+                String rawMemory = registerTable.getModel().getValueAt(operand.getSource1(), MainDisplay.REGISTER_TABLE_VALUE).toString();
+                operand.setSource1(Integer.parseInt(rawMemory));
+                if (!operand.hasOneSource()) {
+                    rawMemory = registerTable.getModel().getValueAt(operand.getSource2(), MainDisplay.REGISTER_TABLE_VALUE).toString();
+                    operand.setSource2(Integer.parseInt(rawMemory));
+                }
             }
-            result = operand.action();
         }
 
+        result = operand.action();
         return result;
     }
 
