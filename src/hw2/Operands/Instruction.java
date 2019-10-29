@@ -21,6 +21,7 @@ public class Instruction {
     private byte opcode;
     private JTable registerTable;
     private JTable memoryTable;
+    private boolean isWriteOperation = false;
 
     public Instruction(String str, JTable registerTable, JTable memoryTable) {
         String[] individualWords = str.split(" ");
@@ -71,8 +72,8 @@ public class Instruction {
     }
 
     public int getResult() {
-
         if (operand.isWriteOperation()) {
+            isWriteOperation = true;
             Store sr = (Store) operand;
             String address = registerTable.getModel().getValueAt(sr.getRegisterNumberToRead(), MainDisplay.REGISTER_TABLE_VALUE).toString();
             byte parsedAddress = Byte.parseByte(address);
@@ -105,6 +106,10 @@ public class Instruction {
 
     public byte getOpcode() {
         return opcode;
+    }
+    
+    public boolean getIsWriteOperation(){
+        return isWriteOperation;
     }
 
 }
