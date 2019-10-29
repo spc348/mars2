@@ -64,31 +64,30 @@ public class Instruction {
                 System.out.println("operation not found");
         }
 
+        isWriteOperation = operand.isWriteOperation();
         result = operand.action();
     }
 
     public int getDestination() {
-        return destination;
-    }
-
-    public int getResult() {
-        if (operand.isWriteOperation()) {
-            isWriteOperation = true;
+        if (isWriteOperation && !operand.usesConstants()) {
             Store sr = (Store) operand;
             String address = registerTable.getModel().getValueAt(sr.getRegisterNumberToRead(), MainDisplay.REGISTER_TABLE_VALUE).toString();
             byte parsedAddress = Byte.parseByte(address);
             parsedAddress += (byte) (sr.getOffset() & 0xFF);
-            int row = ((int) parsedAddress) / memoryTable.getModel().getRowCount();
-            int col = ((int) parsedAddress) % memoryTable.getModel().getColumnCount();
+            return parsedAddress;
+        }
+        return destination;
+    }
 
+    public int getResult() {
+        if (isWriteOperation) {
             int valueToInsert = 0;
             if (!operand.usesConstants()) {
                 String rawMemory = registerTable.getModel().getValueAt(destination, MainDisplay.REGISTER_TABLE_VALUE).toString();
-                valueToInsert = Integer.parseInt(rawMemory);
+                result = Integer.parseInt(rawMemory);
             } else {
-                destination = valueToInsert;
+                result = valueToInsert;
             }
-            memoryTable.getModel().setValueAt(valueToInsert, row, col);
         } else {
             if (!operand.usesConstants()) {
                 String rawMemory = registerTable.getModel().getValueAt(operand.getSource1(), MainDisplay.REGISTER_TABLE_VALUE).toString();
@@ -97,18 +96,19 @@ public class Instruction {
                     rawMemory = registerTable.getModel().getValueAt(operand.getSource2(), MainDisplay.REGISTER_TABLE_VALUE).toString();
                     operand.setSource2(Integer.parseInt(rawMemory));
                 }
+            } else {
+                result = operand.action();
             }
         }
 
-        result = operand.action();
         return result;
     }
 
     public byte getOpcode() {
         return opcode;
     }
-    
-    public boolean getIsWriteOperation(){
+
+    public boolean getIsWriteOperation() {
         return isWriteOperation;
     }
 

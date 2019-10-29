@@ -217,7 +217,7 @@ public class MainDisplay extends javax.swing.JFrame {
         for (int i = 0; i < registerTable.getModel().getRowCount(); i++) {
             registerTable.getModel().setValueAt("0", i, REGISTER_TABLE_VALUE);
         }
-        for(int i = 0; i < memoryTable.getModel().getRowCount(); i++){
+        for (int i = 0; i < memoryTable.getModel().getRowCount(); i++) {
             for (int j = 0; j < memoryTable.getModel().getColumnCount(); j++) {
                 memoryTable.getModel().setValueAt("0", i, j);
             }
@@ -231,11 +231,13 @@ public class MainDisplay extends javax.swing.JFrame {
     private void stepOneButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stepOneButtonActionPerformed
         if (instructionIndex < instructions.size()) {
             Instruction inst = instructions.get(instructionIndex);
-            registerTable.getModel().setValueAt(
-                    Integer.toOctalString(inst.getResult()),
-                    inst.getDestination(),
-                    REGISTER_TABLE_VALUE
-            );
+            if (inst.getIsWriteOperation()) {
+                int row = inst.getDestination() / memoryTable.getModel().getRowCount();
+                int col = inst.getDestination() % memoryTable.getModel().getColumnCount();
+                memoryTable.getModel().setValueAt(inst.getResult(), row, col);
+            } else {
+                registerTable.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
+            }
             if (instructionIndex + 1 < instructions.size()) {
                 instructionIndex++;
             } else {
