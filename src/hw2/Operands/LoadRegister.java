@@ -9,7 +9,7 @@ public class LoadRegister extends Load {
     }
 
     @Override
-    public int action() {
+    public Integer action() {
         return source1;
     }
 

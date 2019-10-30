@@ -6,10 +6,10 @@ import hw2.RegisterLookup;
  *
  * @author cahn
  */
-public class Store extends Operand {
+public class Store<Byte> extends Operand<Byte> {
 
-    protected int registerNumberToWrite = 0;
-    protected int offset = 0;
+    protected int registerNumberToRead = 0;
+    protected short offset = 0;
     protected int valueInRegister = 0;
 
     public Store(String source1) {
@@ -18,26 +18,30 @@ public class Store extends Operand {
             parts[i] = parts[i].replace("(", "");
             parts[i] = parts[i].replace(")", "");
         }
-        this.registerNumberToWrite = new RegisterLookup(parts[1].substring(1)).getRegisterNumber();
-        this.offset = Integer.parseInt(parts[0]);
+        this.registerNumberToRead = new RegisterLookup(parts[1].substring(1)).getRegisterNumber();
+        this.offset = twosComplement(parts[0]);
+    }
+    
+    private short twosComplement(String number){
+       return (short) ~(Short.parseShort(number));
     }
 
     public int getRegisterNumberToRead() {
-        return registerNumberToWrite;
+        return registerNumberToRead;
     }
 
-    public int getOffset() {
+    public short getOffset() {
         return offset;
     }
 
     @Override
-    public int action() {
+    public Byte action() {
         return source1;
     }
 
     @Override
     public byte getOpcode() {
-        return new Byte("6");
+        return 6;
     }
 
     @Override

@@ -1,32 +1,19 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package hw2.Operands;
 
-/**
- *
- * @author cahn
- */
-public class Load extends Operand {
+public class Load extends Operand<Integer> {
 
     Load(String source1) {
         super.setSource1(Integer.parseInt(source1));
     }
 
-    /**
-     *
-     * @return
-     */
     @Override
-    public int action() {
+    public Integer action() {
         return super.source1;
     }
 
     @Override
     public byte getOpcode() {
-        return new Byte("3");
+        return 3;
     }
 
     @Override

@@ -4,29 +4,29 @@ package hw2.Operands;
  *
  * @author cahn
  */
-public abstract class Operand {
+public abstract class Operand<T> {
 
     private byte opcode;
-    protected int source1;
-    protected int source2;
+    protected T source1;
+    protected T source2;
 
-    public int getSource1() {
+    public T getSource1() {
         return source1;
     }
 
-    public int getSource2() {
+    public T getSource2() {
         return source2;
     }
 
-    public void setSource1(int source1) {
+    public void setSource1(T source1) {
         this.source1 = source1;
     }
 
-    public void setSource2(int source2) {
+    public void setSource2(T source2) {
         this.source2 = source2;
     }
 
-    public abstract int action();
+    public abstract T action();
 
     public abstract byte getOpcode();
 

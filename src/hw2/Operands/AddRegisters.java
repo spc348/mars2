@@ -19,7 +19,7 @@ public class AddRegisters extends Add {
     }
     
     @Override
-    public int action(){
+    public Integer action(){
        return source1 + source2;
        
     }
