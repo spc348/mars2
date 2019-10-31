@@ -6,7 +6,7 @@ import hw2.RegisterLookup;
  *
  * @author cahn
  */
-public class Store<Byte> extends Operand<Byte> {
+public class Store extends Operand<Byte> {
 
     protected int registerNumberToRead = 0;
     protected short offset = 0;
@@ -27,7 +27,7 @@ public class Store<Byte> extends Operand<Byte> {
     }
 
     public int getRegisterNumberToRead() {
-        return registerNumberToRead;
+        return registerNumberToRead + offset;
     }
 
     public short getOffset() {
@@ -58,4 +58,9 @@ public class Store<Byte> extends Operand<Byte> {
     public boolean isWriteOperation() {
         return true;
     }
+
+   @Override
+   public boolean loadsMemory() {
+      return false;
+   }
 }

@@ -60,6 +60,9 @@ public class Instruction {
             operand = new StoreRegister(individualWords[2]);
             opcode = operand.getOpcode();
             break;
+         case "loadm":
+            operand = new LoadMemory(individualWords[2]);
+            opcode = operand.getOpcode();
          default:
             System.out.println("operation not found");
       }
@@ -91,11 +94,18 @@ public class Instruction {
          if (operand.usesConstants()) {
             result = operand.action();
          } else {
-            String rawMemory = registerTable.getModel().getValueAt((int)operand.getSource1(), MainDisplay.REGISTER_TABLE_VALUE).toString();
-            operand.setSource1(Integer.parseInt(rawMemory));
-            if (!operand.hasOneSource()) {
-               rawMemory = registerTable.getModel().getValueAt((int)operand.getSource2(), MainDisplay.REGISTER_TABLE_VALUE).toString();
-               operand.setSource2(Integer.parseInt(rawMemory));
+            if (operand.loadsMemory()) {
+               int row = (int) operand.getSource1() / memoryTable.getModel().getColumnCount();
+               int col = (int) operand.getSource1() % memoryTable.getModel().getColumnCount();
+               String rawMemory = memoryTable.getModel().getValueAt(row, col).toString();
+               operand.setSource1(Integer.parseInt(rawMemory));
+            } else {
+               String rawMemory = registerTable.getModel().getValueAt((int) operand.getSource1(), MainDisplay.REGISTER_TABLE_VALUE).toString();
+               operand.setSource1(Integer.parseInt(rawMemory));
+               if (!operand.hasOneSource()) {
+                  rawMemory = registerTable.getModel().getValueAt((int) operand.getSource2(), MainDisplay.REGISTER_TABLE_VALUE).toString();
+                  operand.setSource2(Integer.parseInt(rawMemory));
+               }
             }
          }
       }

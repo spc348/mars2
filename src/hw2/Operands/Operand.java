@@ -35,5 +35,7 @@ public abstract class Operand<T> {
     public abstract boolean hasOneSource();
     
     public abstract boolean isWriteOperation();
+    
+    public abstract boolean loadsMemory();
 
 }

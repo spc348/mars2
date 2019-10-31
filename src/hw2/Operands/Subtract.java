@@ -26,4 +26,9 @@ public class Subtract extends Operand<Integer> {
    public boolean isWriteOperation() {
       return false;
    }
+
+   @Override
+   public boolean loadsMemory() {
+      return false;
+   }
 }
