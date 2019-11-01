@@ -20,6 +20,7 @@ public class Store extends Operand<Byte> {
         }
         this.registerNumberToRead = new RegisterLookup(parts[1].substring(1)).getRegisterNumber();
         this.offset = twosComplement(parts[0]);
+        
     }
     
     private short twosComplement(String number){
@@ -27,7 +28,7 @@ public class Store extends Operand<Byte> {
     }
 
     public int getRegisterNumberToRead() {
-        return registerNumberToRead + offset;
+        return registerNumberToRead;
     }
 
     public short getOffset() {
