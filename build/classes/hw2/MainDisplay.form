@@ -31,7 +31,7 @@
                   <Component id="runButton" alignment="1" max="32767" attributes="0"/>
                   <Component id="clearButton" alignment="1" max="32767" attributes="0"/>
                   <Component id="stepOneButton" max="32767" attributes="0"/>
-                  <Component id="compileButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="compileButton" alignment="0" max="32767" attributes="0"/>
               </Group>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Component id="jScrollPane2" pref="253" max="32767" attributes="0"/>
@@ -100,11 +100,32 @@
       <SubComponents>
         <Component class="javax.swing.JTable" name="registerTable">
           <Properties>
-            <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection code="registerModel" type="code"/>
+            <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
+              <Table columnCount="3" rowCount="32">
+                <Column editable="false" title="Name" type="java.lang.String"/>
+                <Column editable="true" title="Number" type="java.lang.String"/>
+                <Column editable="true" title="Value" type="java.lang.String"/>
+              </Table>
             </Property>
+            <Property name="autoscrolls" type="boolean" value="false"/>
             <Property name="columnModel" type="javax.swing.table.TableColumnModel" editor="org.netbeans.modules.form.editors2.TableColumnModelEditor">
-              <TableColumnModel selectionModel="0"/>
+              <TableColumnModel selectionModel="0">
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="false">
+                  <Title/>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="false">
+                  <Title/>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="false">
+                  <Title/>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+              </TableColumnModel>
             </Property>
             <Property name="tableHeader" type="javax.swing.table.JTableHeader" editor="org.netbeans.modules.form.editors2.JTableHeaderEditor">
               <TableHeader reorderingAllowed="false" resizingAllowed="true"/>
@@ -143,7 +164,7 @@
               <Properties>
                 <Property name="columns" type="int" value="20"/>
                 <Property name="rows" type="int" value="5"/>
-                <Property name="text" type="java.lang.String" value="add $v1 1 1&#xa;add $v2 0 011&#xa;storr $v1 0($v2)"/>
+                <Property name="text" type="java.lang.String" value="add $v1 1 9&#xa;add $t0 0 16&#xa;storr $v1 0($t0)"/>
               </Properties>
               <Events>
                 <EventHandler event="keyTyped" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="textEditorKeyTyped"/>

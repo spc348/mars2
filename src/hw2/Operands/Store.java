@@ -18,13 +18,13 @@ public class Store extends Operand<Byte> {
             parts[i] = parts[i].replace("(", "");
             parts[i] = parts[i].replace(")", "");
         }
-        this.registerNumberToRead = new RegisterLookup(parts[1].substring(1)).getRegisterNumber();
+        this.registerNumberToRead = new RegisterLookup(parts[1]).getRegisterNumber();
         this.offset = twosComplement(parts[0]);
         
     }
     
     private short twosComplement(String number){
-       return (short) ~(Short.parseShort(number));
+       return (short) (Short.parseShort(number));
     }
 
     public int getRegisterNumberToRead() {
