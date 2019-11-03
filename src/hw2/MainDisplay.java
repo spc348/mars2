@@ -26,6 +26,7 @@ public class MainDisplay extends javax.swing.JFrame {
         initComponents();
         stepOneButton.setEnabled(false);
         runButton.setEnabled(false);
+        initModels();
     }
 
     private String instructionRaw = new String();
@@ -33,13 +34,21 @@ public class MainDisplay extends javax.swing.JFrame {
     private final ArrayList<Instruction> instructions = new ArrayList<>();
     private int instructionIndex;
     public static final int REGISTER_TABLE_VALUE = 2;
-    public static final int MEMORY_TABLE_VALUE = 2;
+    public static final int MEMORY_TABLE_VALUE = 1;
     private String[][] codeTable;
     private final TableModel codeModel;
     private final String[][] registerModelTable = new String[32][3];
     private final TableModel registerModel;
     private final String[][] memoryModelTable = new String[8][128];
     private final TableModel memoryModel;
+    private final String[] registerNames
+            = {"$zero", "$at", "$v0", "$v1",
+                "$a0", "$a1", "$a2", "$a3", "$t0",
+                "$t1", "$t2", "$t3", "$t4", "$t5",
+                "$t6", "$t7", "$s0", "$s1", "$s2",
+                "$s3", "$s4", "$s5", "$s6",
+                "$k0", "$k1", "$gp", "$sp",
+                "$fp", "$ra", "pc", "hi", "lo"};
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -149,10 +158,6 @@ public class MainDisplay extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jTabbedPane2)
-                .addContainerGap())
             .addGroup(layout.createSequentialGroup()
                 .addGap(24, 24, 24)
                 .addComponent(compileButton)
@@ -164,8 +169,12 @@ public class MainDisplay extends javax.swing.JFrame {
                 .addComponent(clearButton)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 541, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jTabbedPane2))
+                    .addComponent(jScrollPane2))
+                .addContainerGap())
         );
 
         pack();
@@ -359,7 +368,7 @@ public class MainDisplay extends javax.swing.JFrame {
         return model;
     }
 
-    private TableModel CreateMemoryModel() {
+    private TableModel CreateRegisterModel() {
         TableModel model = new TableModel() {
             @Override
             public int getRowCount() {
@@ -411,7 +420,7 @@ public class MainDisplay extends javax.swing.JFrame {
         return model;
     }
 
-    private TableModel CreateRegisterModel() {
+    private TableModel CreateMemoryModel() {
         TableModel model = new TableModel() {
             @Override
             public int getRowCount() {
@@ -443,12 +452,12 @@ public class MainDisplay extends javax.swing.JFrame {
 
             @Override
             public Object getValueAt(int arg0, int arg1) {
-                return memoryModelTable[arg0][arg1];
+                return memoryModelTable[arg1][arg0];
             }
 
             @Override
             public void setValueAt(Object arg0, int arg1, int arg2) {
-                memoryModelTable[arg1][arg2] = arg0.toString();
+                memoryModelTable[arg2][arg1] = arg0.toString();
             }
 
             @Override
@@ -462,5 +471,18 @@ public class MainDisplay extends javax.swing.JFrame {
             }
         };
         return model;
+    }
+
+    private void initModels() {
+        for (int i = 0; i < registerTable.getModel().getRowCount(); i++) {
+            registerTable.getModel().setValueAt(String.valueOf(i), i, REGISTER_TABLE_VALUE - 1);
+            registerTable.getModel().setValueAt(registerNames[i], i, REGISTER_TABLE_VALUE - 2);
+        }
+        int memAddress = 0;
+        for (int i = 0; i < memoryTable.getModel().getRowCount(); i++) {
+
+            memoryTable.getModel().setValueAt( String.format("%1$02x",memAddress), i, MEMORY_TABLE_VALUE - 1);
+            memAddress += 4;
+        }
     }
 }
