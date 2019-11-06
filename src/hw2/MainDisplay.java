@@ -7,8 +7,11 @@ package hw2;
 
 import hw2.Operands.Instruction;
 import java.util.ArrayList;
+import javax.swing.JTable;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
+import sun.swing.table.DefaultTableCellHeaderRenderer;
 
 /**
  *
@@ -314,6 +317,7 @@ public class MainDisplay extends javax.swing.JFrame {
             runButton.setEnabled(true);
         }
         jTabbedPane2.setSelectedIndex(OpcodePage);
+        updatePC(0);
     }//GEN-LAST:event_compileButtonActionPerformed
 
     private void Clear() {
@@ -367,6 +371,7 @@ public class MainDisplay extends javax.swing.JFrame {
                         inst.getDestination(), REGISTER_TABLE_VALUE);
             }
             instructionIndex++;
+            updatePC(instructionIndex);
         }
         stepOneButton.setEnabled(false);
         runButton.setEnabled(false);
@@ -395,16 +400,24 @@ public class MainDisplay extends javax.swing.JFrame {
                 if ("GTK+".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
+
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MainDisplay.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainDisplay.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MainDisplay.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainDisplay.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MainDisplay.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainDisplay.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MainDisplay.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainDisplay.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
@@ -503,5 +516,7 @@ public class MainDisplay extends javax.swing.JFrame {
 
     private void updatePC(int index) {
         registerBuffer.getModel().setValueAt(index, 29, REGISTER_TABLE_VALUE);
+        String old = codeModel.getModel().getValueAt(index, 0).toString();
+        codeModel.getModel().setValueAt("===> " + old, index, 0);
     }
 }

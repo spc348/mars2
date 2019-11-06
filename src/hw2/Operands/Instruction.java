@@ -7,6 +7,7 @@ package hw2.Operands;
 
 import hw2.MainDisplay;
 import hw2.RegisterLookup;
+import java.util.Arrays;
 import javax.swing.JTable;
 
 /**
@@ -23,9 +24,6 @@ public class Instruction {
     private JTable memoryTable;
     private final boolean isWriteOperation;
     private INSTRUCTION_TYPE instructionType;
-    String[] rTypeNames = {"Opcode", "rs", "rt", "rd", "shamt", "funct"};
-    String[] iTypeNames = {"Opcode", "rs", "rt", "IMM"};
-    String[] jTypeNames = {"Opcode", "Address"};
     private int rsValue = 0;
     private int immAddress;
     private int rtValue;
@@ -152,25 +150,43 @@ public class Instruction {
         return instructionType;
     }
 
+    public String byteArrayConverter(int value, int length) {
+        boolean[] bits = new boolean[length];
+        char[] sequence = new char[length];
+        for (int i = 0; i < length; i++) {
+            bits[i] = (value & (1 << i)) != 0;
+            sequence[i] = bits[i] ? '1' : '0';
+        }
+        String result = new String(sequence);
+        return result;
+    }
+
     public String getInstructionString() {
         StringBuilder builder = new StringBuilder();
-        builder.append(Integer.toBinaryString(opcode));
+        builder.append(byteArrayConverter(opcode, 6));
+        builder.append(" ");
         if (null != getInstructionType()) {
             switch (getInstructionType()) {
                 case J:
-                    builder.append(String.format(" %026d ", immAddress));
+                    builder.append(byteArrayConverter(immAddress, 26));
                     break;
                 case R:
-                    builder.append(String.format(" %05d ", rsValue));
-                    builder.append(String.format(" %05d ", rtValue));
-                    builder.append(String.format(" %05d ", destination));
-                    builder.append(String.format(" %05d ", 0));
-                    builder.append(String.format(" %06d ", 0));
+                    builder.append(byteArrayConverter(rsValue, 5));
+                    builder.append(" ");
+                    builder.append(byteArrayConverter(rtValue, 5));
+                    builder.append(" ");
+                    builder.append(byteArrayConverter(destination, 5));
+                    builder.append(" ");
+                    builder.append(String.format("%05d", 0));
+                    builder.append(" ");
+                    builder.append(String.format("%06d", 0));
                     break;
                 case I:
-                    builder.append(String.format(" %06d ", destination));
-                    builder.append(String.format(" %05d ", rsValue));
-                    builder.append(String.format(" %016d ", immAddress));
+                    builder.append(byteArrayConverter(destination, 5));
+                    builder.append(" ");
+                    builder.append(byteArrayConverter(rsValue, 5));
+                    builder.append(" ");
+                    builder.append(byteArrayConverter(immAddress, 16));
                     break;
                 default:
                     break;
