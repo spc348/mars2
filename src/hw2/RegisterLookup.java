@@ -2,6 +2,7 @@ package hw2;
 
 public class RegisterLookup {
     int registerNumber;
+    String registerNumberBinary;
 
     public RegisterLookup(String register) {
         register = register.toLowerCase();
@@ -17,6 +18,4 @@ public class RegisterLookup {
         return registerNumber;
     }
     
-    
-
 }
