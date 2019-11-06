@@ -64,8 +64,6 @@ public class MainDisplay extends javax.swing.JFrame {
         compileButton = new javax.swing.JButton();
         stepOneButton = new javax.swing.JButton();
         runButton = new javax.swing.JButton();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        registerTable = new javax.swing.JTable();
         clearButton = new javax.swing.JButton();
         jTabbedPane2 = new javax.swing.JTabbedPane();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -75,6 +73,8 @@ public class MainDisplay extends javax.swing.JFrame {
         codeModel = new javax.swing.JTable();
         jScrollPane3 = new javax.swing.JScrollPane();
         memoryTable = new javax.swing.JTable();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        registerBuffer = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -103,69 +103,6 @@ public class MainDisplay extends javax.swing.JFrame {
                 runButtonActionPerformed(evt);
             }
         });
-
-        registerTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null}
-            },
-            new String [] {
-                "Name", "Number", "Value"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class
-            };
-            boolean[] canEdit = new boolean [] {
-                false, true, true
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        registerTable.setAutoscrolls(false);
-        registerTable.getTableHeader().setReorderingAllowed(false);
-        jScrollPane2.setViewportView(registerTable);
-        if (registerTable.getColumnModel().getColumnCount() > 0) {
-            registerTable.getColumnModel().getColumn(0).setResizable(false);
-            registerTable.getColumnModel().getColumn(1).setResizable(false);
-            registerTable.getColumnModel().getColumn(2).setResizable(false);
-        }
 
         clearButton.setText("Clear");
         clearButton.addActionListener(new java.awt.event.ActionListener() {
@@ -268,6 +205,61 @@ public class MainDisplay extends javax.swing.JFrame {
 
         jTabbedPane2.addTab("Execute", jPanel1);
 
+        registerBuffer.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null}
+            },
+            new String [] {
+                "Name", "Number", "Value"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, true, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        registerBuffer.getTableHeader().setReorderingAllowed(false);
+        jScrollPane5.setViewportView(registerBuffer);
+        if (registerBuffer.getColumnModel().getColumnCount() > 0) {
+            registerBuffer.getColumnModel().getColumn(0).setResizable(false);
+            registerBuffer.getColumnModel().getColumn(1).setResizable(false);
+            registerBuffer.getColumnModel().getColumn(2).setResizable(false);
+        }
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -281,9 +273,9 @@ public class MainDisplay extends javax.swing.JFrame {
                     .addComponent(clearButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(stepOneButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(compileButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 253, Short.MAX_VALUE)
-                .addGap(8, 8, 8))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 211, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -298,11 +290,10 @@ public class MainDisplay extends javax.swing.JFrame {
                 .addComponent(clearButton)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jTabbedPane2))
-                    .addComponent(jScrollPane2))
+                    .addComponent(jTabbedPane2)
+                    .addComponent(jScrollPane5))
                 .addContainerGap())
         );
 
@@ -314,7 +305,7 @@ public class MainDisplay extends javax.swing.JFrame {
         instructionRaw = textEditor.getText();
         instructionLines = instructionRaw.split("\n");
         for (int i = 0; i < instructionLines.length; i++) {
-            Instruction inst = new Instruction(instructionLines[i], registerTable, memoryTable);
+            Instruction inst = new Instruction(instructionLines[i], registerBuffer, memoryTable);
             instructions.add(inst);
             codeModel.getModel().setValueAt(inst.getInstructionString(), i, 0);
         }
@@ -328,8 +319,8 @@ public class MainDisplay extends javax.swing.JFrame {
     private void Clear() {
         instructionIndex = 0;
         instructions.clear();
-        for (int i = 0; i < registerTable.getModel().getRowCount(); i++) {
-            registerTable.getModel().setValueAt("0", i, REGISTER_TABLE_VALUE);
+        for (int i = 0; i < registerBuffer.getModel().getRowCount(); i++) {
+            registerBuffer.getModel().setValueAt("0", i, REGISTER_TABLE_VALUE);
         }
         for (int i = 0; i < memoryTable.getModel().getRowCount(); i++) {
             for (int j = 1; j < memoryTable.getModel().getColumnCount(); j++) {
@@ -352,11 +343,12 @@ public class MainDisplay extends javax.swing.JFrame {
                 memoryTable.getModel().setValueAt(inst.getResult(),
                         inst.getDestination(), MEMORY_TABLE_VALUE);
             } else {
-                registerTable.getModel().setValueAt(String.valueOf(inst.getResult()),
+                registerBuffer.getModel().setValueAt(inst.getResult(),
                         inst.getDestination(), REGISTER_TABLE_VALUE);
             }
             if (instructionIndex + 1 < instructions.size()) {
                 instructionIndex++;
+                updatePC(instructionIndex);
             } else {
                 stepOneButton.setEnabled(false);
                 runButton.setEnabled(false);
@@ -365,14 +357,13 @@ public class MainDisplay extends javax.swing.JFrame {
     }//GEN-LAST:event_stepOneButtonActionPerformed
 
     private void runButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runButtonActionPerformed
-        instructionIndex = 0;
         while (instructionIndex < instructions.size()) {
             Instruction inst = instructions.get(instructionIndex);
             if (inst.getIsWriteOperation()) {
                 memoryTable.getModel().setValueAt(inst.getResult(),
                         inst.getDestination(), MEMORY_TABLE_VALUE);
             } else {
-                registerTable.getModel().setValueAt(inst.getResult(),
+                registerBuffer.getModel().setValueAt(inst.getResult(),
                         inst.getDestination(), REGISTER_TABLE_VALUE);
             }
             instructionIndex++;
@@ -431,12 +422,12 @@ public class MainDisplay extends javax.swing.JFrame {
     private javax.swing.JButton compileButton;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JTable memoryTable;
-    private javax.swing.JTable registerTable;
+    public javax.swing.JTable registerBuffer;
     private javax.swing.JButton runButton;
     private javax.swing.JButton stepOneButton;
     private javax.swing.JTextArea textEditor;
@@ -497,10 +488,10 @@ public class MainDisplay extends javax.swing.JFrame {
     }
 
     private void initModels() {
-        for (int i = 0; i < registerTable.getModel().getRowCount(); i++) {
-            registerTable.getModel().setValueAt(String.valueOf(i), i, REGISTER_TABLE_VALUE - 1);
-            registerTable.getModel().setValueAt(REGISTER_NAMES[i], i, REGISTER_TABLE_VALUE - 2);
-            registerTable.getModel().setValueAt("", i, REGISTER_TABLE_VALUE);
+        for (int i = 0; i < registerBuffer.getModel().getRowCount(); i++) {
+            registerBuffer.getModel().setValueAt(String.valueOf(i), i, REGISTER_TABLE_VALUE - 1);
+            registerBuffer.getModel().setValueAt(REGISTER_NAMES[i], i, REGISTER_TABLE_VALUE - 2);
+            registerBuffer.getModel().setValueAt("", i, REGISTER_TABLE_VALUE);
         }
         int memAddress = 0;
         for (int i = 0; i < memoryTable.getModel().getRowCount(); i++) {
@@ -508,5 +499,9 @@ public class MainDisplay extends javax.swing.JFrame {
             memoryTable.getModel().setValueAt(String.format("0x%1$08x", memAddress), i, MEMORY_TABLE_VALUE - 1);
             memAddress += 4;
         }
+    }
+
+    private void updatePC(int index) {
+        registerBuffer.getModel().setValueAt(index, 29, REGISTER_TABLE_VALUE);
     }
 }

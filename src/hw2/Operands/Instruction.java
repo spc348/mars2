@@ -90,8 +90,8 @@ public class Instruction {
         this.isWriteOperation = operand.isWriteOperation();
         result = operand.action();
     }
-    
-    private void setImmediateAddress(int address){
+
+    private void setImmediateAddress(int address) {
         immAddress = address;
     }
 
@@ -109,6 +109,7 @@ public class Instruction {
     }
 
     public Object getResult() {
+
         if (isWriteOperation) {
             if (operand.usesConstants()) {
                 result = getDestination();
@@ -116,8 +117,11 @@ public class Instruction {
                 String rawMemory = registerTable.getModel().getValueAt(destination, MainDisplay.REGISTER_TABLE_VALUE).toString();
                 result = Integer.parseInt(rawMemory);
             }
-        } else {
-            if (!operand.usesConstants()) {
+            return result;
+        }
+
+        if (instructionType == INSTRUCTION_TYPE.I) {
+            if (operand.loadsMemory()) {
                 String rawMemory = memoryTable.getModel().getValueAt((int) operand.getSource1(), MainDisplay.MEMORY_TABLE_VALUE).toString();
                 operand.setSource1(Integer.parseInt(rawMemory));
             } else {
@@ -128,8 +132,8 @@ public class Instruction {
                     operand.setSource2(Integer.parseInt(rawMemory));
                 }
             }
-            result = operand.action();
         }
+        result = operand.action();
         return result;
     }
 
