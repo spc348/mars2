@@ -14,7 +14,7 @@ public class Add extends Operand<Integer> {
 
     @Override
     public byte getOpcode() {
-        return new Byte("1");
+        return 1;
     }
 
     @Override
@@ -32,8 +32,13 @@ public class Add extends Operand<Integer> {
         return false;
     }
 
-   @Override
-   public boolean loadsMemory() {
-      return false;
-   }
+    @Override
+    public boolean loadsMemory() {
+        return false;
+    }
+
+    @Override
+    public boolean isBounce() {
+        return false;
+    }
 }

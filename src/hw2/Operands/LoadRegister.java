@@ -5,7 +5,7 @@ import hw2.RegisterLookup;
 public class LoadRegister extends Load {
 
     public LoadRegister(String source1) {
-        super(String.valueOf(new RegisterLookup(source1.substring(1)).getRegisterNumber()));
+        super(String.valueOf(new RegisterLookup(source1).getRegisterNumber()));
     }
 
     @Override

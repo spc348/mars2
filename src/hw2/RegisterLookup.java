@@ -1,7 +1,7 @@
 package hw2;
 
 public class RegisterLookup {
-    int registerNumber;
+    int registerNumber = 0;
     String registerNumberBinary;
 
     public RegisterLookup(String register) {
@@ -12,6 +12,9 @@ public class RegisterLookup {
              break;
           }
        }
+        if(registerNumber == 0){
+            System.out.println("register not found");
+        }
     }
 
     public int getRegisterNumber() {

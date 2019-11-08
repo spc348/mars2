@@ -27,6 +27,7 @@ public class Instruction {
     private int rsValue = 0;
     private int immAddress;
     private int rtValue;
+    private int bounceLocation;
 
     public Instruction(String str, JTable registerTable, JTable memoryTable) {
         this.immAddress = 0;
@@ -67,11 +68,6 @@ public class Instruction {
                 opcode = operand.getOpcode();
                 instructionType = INSTRUCTION_TYPE.I;
                 break;
-            case "storr":
-                operand = new StoreRegister(individualWords[2]);
-                opcode = operand.getOpcode();
-                instructionType = INSTRUCTION_TYPE.I;
-                break;
             case "loadm":
                 operand = new LoadMemory(individualWords[2]);
                 opcode = operand.getOpcode();
@@ -82,12 +78,43 @@ public class Instruction {
                 opcode = operand.getOpcode();
                 instructionType = INSTRUCTION_TYPE.I;
                 break;
+            case "sub":
+                operand = new Subtract(individualWords[2], individualWords[3]);
+                opcode = operand.getOpcode();
+                instructionType = INSTRUCTION_TYPE.R;
+                break;
+            case "subr":
+                operand = new SubtractRegisters(individualWords[2], individualWords[3]);
+                opcode = operand.getOpcode();
+                instructionType = INSTRUCTION_TYPE.R;
+                break;
+            case "bounce":
+                operand = new Bounce(individualWords[1]);
+                opcode = operand.getOpcode();
+                instructionType = INSTRUCTION_TYPE.J;
+                Bounce b = (Bounce) operand;
+                bounceLocation = b.getBounceLocation();
+                break;
             default:
                 System.out.println("operation not found");
         }
 
         this.isWriteOperation = operand.isWriteOperation();
         result = operand.action();
+        if (instructionType == INSTRUCTION_TYPE.R) {
+            rsValue = Integer.parseInt(operand.getSource1().toString());
+            if (!operand.hasOneSource()) {
+                rtValue = Integer.parseInt(operand.getSource2().toString());
+            }
+        }
+    }
+
+    public int getBounceLocation() {
+        return bounceLocation;
+    }
+
+    public boolean isBounceInstruction() {
+        return operand.isBounce();
     }
 
     private void setImmediateAddress(int address) {
@@ -98,7 +125,7 @@ public class Instruction {
         if (isWriteOperation) {
             Store sr = (Store) operand;
             rsValue = sr.getRegisterNumberToRead();
-            String address = registerTable.getModel().getValueAt(sr.getRegisterNumberToRead(), MainDisplay.REGISTER_TABLE_VALUE).toString();
+            String address = registerTable.getModel().getValueAt(destination, MainDisplay.REGISTER_TABLE_VALUE).toString();
             int parsedAddress = Integer.parseInt(address);
             parsedAddress += sr.getOffset();
             setImmediateAddress(parsedAddress);
@@ -113,27 +140,30 @@ public class Instruction {
             if (operand.usesConstants()) {
                 result = getDestination();
             } else {
-                String rawMemory = registerTable.getModel().getValueAt(destination, MainDisplay.REGISTER_TABLE_VALUE).toString();
+                Store sr = (Store) operand;
+                rsValue = sr.getRegisterNumberToRead();
+                String rawMemory = registerTable.getModel().getValueAt(sr.getRegisterNumberToRead(), MainDisplay.REGISTER_TABLE_VALUE).toString();
                 result = Integer.parseInt(rawMemory);
             }
             return result;
         }
 
-        if (instructionType == INSTRUCTION_TYPE.I) {
+        if (instructionType == INSTRUCTION_TYPE.I || instructionType == INSTRUCTION_TYPE.R) {
             if (operand.loadsMemory()) {
-                String rawMemory = memoryTable.getModel().getValueAt((int) operand.getSource1(), MainDisplay.MEMORY_TABLE_VALUE).toString();
+                String rawMemory = memoryTable.getModel().getValueAt(Integer.parseInt(operand.getSource1().toString()), MainDisplay.MEMORY_TABLE_VALUE).toString();
                 operand.setSource1(Integer.parseInt(rawMemory));
-            } else {
-                rsValue = (int) operand.getSource1();
+            } else if (!operand.usesConstants()) {
+                rsValue = Integer.parseInt(operand.getSource1().toString());
                 String rawMemory = registerTable.getModel().getValueAt(rsValue, MainDisplay.REGISTER_TABLE_VALUE).toString();
                 operand.setSource1(Integer.parseInt(rawMemory));
                 if (!operand.hasOneSource()) {
-                    rtValue = (int) operand.getSource2();
+                    rtValue = Integer.parseInt(operand.getSource2().toString());
                     rawMemory = registerTable.getModel().getValueAt(rtValue, MainDisplay.REGISTER_TABLE_VALUE).toString();
                     operand.setSource2(Integer.parseInt(rawMemory));
                 }
             }
         }
+
         result = operand.action();
         return result;
     }

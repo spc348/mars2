@@ -64,4 +64,9 @@ public class Store extends Operand<Byte> {
    public boolean loadsMemory() {
       return false;
    }
+
+    @Override
+    public boolean isBounce() {
+        return false;
+    }
 }

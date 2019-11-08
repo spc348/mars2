@@ -116,7 +116,7 @@ public class MainDisplay extends javax.swing.JFrame {
 
         textEditor.setColumns(20);
         textEditor.setRows(5);
-        textEditor.setText("add $v1 1 9\nadd $t0 0 16\nstorr $v1 0($t0)");
+        textEditor.setText("add $v1 1 9\nadd $t0 0 16\naddr $a0 $v1 $t0\nsubr $a1 $v1 $t0\nstor $v1 0($t0)");
         textEditor.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 textEditorKeyTyped(evt);
@@ -317,7 +317,6 @@ public class MainDisplay extends javax.swing.JFrame {
             runButton.setEnabled(true);
         }
         jTabbedPane2.setSelectedIndex(OpcodePage);
-        updatePC(0);
     }//GEN-LAST:event_compileButtonActionPerformed
 
     private void Clear() {
@@ -350,10 +349,22 @@ public class MainDisplay extends javax.swing.JFrame {
                 registerBuffer.getModel().setValueAt(inst.getResult(),
                         inst.getDestination(), REGISTER_TABLE_VALUE);
             }
-            if (instructionIndex + 1 < instructions.size()) {
-                instructionIndex++;
+            if (inst.isBounceInstruction()) {
                 updatePC(instructionIndex);
+                int oldIndex = instructionIndex;
+                instructionIndex = inst.getBounceLocation();
+                if (oldIndex > instructionIndex) {
+                    for (int i = instructionIndex; i <= oldIndex; i++) {
+                        String old = codeModel.getModel().getValueAt(i, 0).toString();
+                        String replaced = old.replace("> ", "");
+                        codeModel.getModel().setValueAt(replaced, i, 0);
+                    }
+                }
+            } else if (instructionIndex + 1 < instructions.size()) {
+                instructionIndex++;
+                updatePC(instructionIndex - 1);
             } else {
+                updatePC(instructionIndex);
                 stepOneButton.setEnabled(false);
                 runButton.setEnabled(false);
             }
@@ -370,8 +381,20 @@ public class MainDisplay extends javax.swing.JFrame {
                 registerBuffer.getModel().setValueAt(inst.getResult(),
                         inst.getDestination(), REGISTER_TABLE_VALUE);
             }
-            instructionIndex++;
-            updatePC(instructionIndex);
+            if (inst.isBounceInstruction()) {
+                updatePC(instructionIndex);
+                int oldIndex = instructionIndex;
+                instructionIndex = inst.getBounceLocation();
+                if (oldIndex > instructionIndex) {
+                    for (int i = instructionIndex; i <= oldIndex; i++) {
+                        String old = codeModel.getModel().getValueAt(i, 0).toString();
+                        codeModel.getModel().setValueAt(old.replace("> ", ""), i, 0);
+                    }
+                }
+            } else if (instructionIndex + 1 < instructions.size()) {
+                updatePC(instructionIndex);
+                instructionIndex++;
+            }
         }
         stepOneButton.setEnabled(false);
         runButton.setEnabled(false);
@@ -517,6 +540,6 @@ public class MainDisplay extends javax.swing.JFrame {
     private void updatePC(int index) {
         registerBuffer.getModel().setValueAt(index, 29, REGISTER_TABLE_VALUE);
         String old = codeModel.getModel().getValueAt(index, 0).toString();
-        codeModel.getModel().setValueAt("===> " + old, index, 0);
+        codeModel.getModel().setValueAt("> " + old, index, 0);
     }
 }

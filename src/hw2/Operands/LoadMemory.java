@@ -19,7 +19,7 @@ public class LoadMemory extends Load {
          parts[i] = parts[i].replace("(", "");
          parts[i] = parts[i].replace(")", "");
       }
-      this.registerNumberToWrite = new RegisterLookup(parts[1].substring(1)).getRegisterNumber();
+      this.registerNumberToWrite = new RegisterLookup(parts[1]).getRegisterNumber();
       this.offset = twosComplement(parts[0]);
       
       super.setSource1(registerNumberToWrite + offset);

@@ -119,7 +119,7 @@
               <Properties>
                 <Property name="columns" type="int" value="20"/>
                 <Property name="rows" type="int" value="5"/>
-                <Property name="text" type="java.lang.String" value="add $v1 1 9&#xa;add $t0 0 16&#xa;storr $v1 0($t0)"/>
+                <Property name="text" type="java.lang.String" value="add $v1 1 9&#xa;add $t0 0 16&#xa;addr $a0 $v1 $t0&#xa;subr $a1 $v1 $t0&#xa;stor $v1 0($t0)"/>
               </Properties>
               <Events>
                 <EventHandler event="keyTyped" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="textEditorKeyTyped"/>

@@ -38,4 +38,6 @@ public abstract class Operand<T> {
     
     public abstract boolean loadsMemory();
 
+    public abstract boolean isBounce();
+
 }

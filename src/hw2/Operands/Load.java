@@ -36,4 +36,9 @@ public class Load extends Operand<Integer> {
        return false;
     }
 
+    @Override
+    public boolean isBounce() {
+        return false;
+    }
+
 }

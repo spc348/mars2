@@ -5,23 +5,19 @@
  */
 package hw2.Operands;
 
-import hw2.RegisterLookup;
-
 /**
  *
  * @author cahn
  */
-public class AddRegisters extends Add {
-
-    public AddRegisters(String source1, String source2) {
-        super(String.valueOf(new RegisterLookup(source1).getRegisterNumber()),
-                String.valueOf(new RegisterLookup(source2).getRegisterNumber()));
+public class Bounce extends Operand<Integer> {
+    
+    public Bounce(String val){
+        super.setSource1(Integer.parseInt(val));
     }
 
     @Override
-    public Integer action() {
-        return source1 + source2;
-
+    public byte getOpcode() {
+        return 13;
     }
 
     @Override
@@ -31,17 +27,31 @@ public class AddRegisters extends Add {
 
     @Override
     public boolean hasOneSource() {
+        return true;
+    }
+
+    @Override
+    public boolean isWriteOperation() {
         return false;
     }
 
     @Override
-    public byte getOpcode() {
-        return 2;
+    public boolean loadsMemory() {
+        return false;
+    }
+
+    @Override
+    public Integer action() {
+        return source1;
     }
 
     @Override
     public boolean isBounce() {
-        return false;
+        return true;
+    }
+    
+    public int getBounceLocation(){
+        return source1;
     }
 
 }
