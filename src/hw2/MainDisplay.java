@@ -199,12 +199,12 @@ public class MainDisplay extends javax.swing.JFrame {
             codeModel.getColumnModel().getColumn(0).setResizable(false);
         }
 
-        jPanel1.add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 740, 280));
+        jPanel1.add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 740, 100));
 
         memoryTable.setModel(memoryModel);
         jScrollPane3.setViewportView(memoryTable);
 
-        jPanel1.add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 320, 740, 290));
+        jPanel1.add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 470, 740, 140));
 
         jTabbedPane2.addTab("Execute", jPanel1);
 
