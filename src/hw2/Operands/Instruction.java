@@ -7,7 +7,6 @@ package hw2.Operands;
 
 import hw2.MainDisplay;
 import hw2.RegisterLookup;
-import java.util.Arrays;
 import javax.swing.JTable;
 
 /**
@@ -28,20 +27,24 @@ public class Instruction {
     private int immAddress;
     private int rtValue;
     private int bounceLocation;
+    private PIPELINE_STAGE stage;
+    private int pc_index;
+    private int pc_row;
+    private JTable pipeline;
 
-    public Instruction(String str, JTable registerTable, JTable memoryTable) {
+    public Instruction(String str, JTable registerTable, JTable memoryTable, JTable pipeline) {
         this.immAddress = 0;
         String[] individualWords = str.split(" ");
         assert (individualWords.length >= 3);
 
         this.registerTable = registerTable;
         this.memoryTable = memoryTable;
+        this.pipeline = pipeline;
         assert (this.registerTable != null && this.memoryTable != null);
 
         destination = new RegisterLookup(individualWords[1]).getRegisterNumber();
 
         individualWords[0] = individualWords[0].toLowerCase();
-
         switch (individualWords[0]) {
             case "add":
                 operand = new Add(individualWords[2], individualWords[3]);
@@ -108,6 +111,23 @@ public class Instruction {
             }
         }
     }
+    
+    public void setpcIndex(int index){
+       pc_index = index;
+    }
+    
+    public void setpcRow(int row){
+       pc_row = row;
+    }
+    
+    public PIPELINE_STAGE getStage(){
+       return stage;
+    }
+    
+    public void setStage(PIPELINE_STAGE newStage){
+       stage = newStage;
+       pipeline.getModel().setValueAt(stage.toString(), pc_index, pc_row);
+    }
 
     public int getBounceLocation() {
         return bounceLocation;
@@ -119,6 +139,13 @@ public class Instruction {
 
     private void setImmediateAddress(int address) {
         immAddress = address;
+    }
+    
+    public String getInstructionName(){
+       String name;
+       name = operand.getClass().toString();
+       name = name.replace("class hw2.Operands.", "");
+       return name;
     }
 
     public int getDestination() {
@@ -135,7 +162,6 @@ public class Instruction {
     }
 
     public Object getResult() {
-
         if (isWriteOperation) {
             if (operand.usesConstants()) {
                 result = getDestination();
@@ -187,8 +213,7 @@ public class Instruction {
             bits[i] = (value & (1 << i)) != 0;
             sequence[i] = bits[i] ? '1' : '0';
         }
-        String result = new String(sequence);
-        return result;
+        return new String(sequence);
     }
 
     public String getInstructionString() {
