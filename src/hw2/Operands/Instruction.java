@@ -111,22 +111,37 @@ public class Instruction {
             }
         }
     }
-    
-    public void setpcIndex(int index){
-       pc_index = index;
+
+    public void setpcIndex(int index) {
+        pc_index = index;
     }
     
-    public void setpcRow(int row){
-       pc_row = row;
+    public void incrementIndex(){
+        pc_index += 1;
     }
     
-    public PIPELINE_STAGE getStage(){
-       return stage;
+    public void setpcindex(int index){
+        pc_index = index;
     }
     
-    public void setStage(PIPELINE_STAGE newStage){
-       stage = newStage;
-       pipeline.getModel().setValueAt(stage.toString(), pc_index, pc_row);
+    public int getpcindex(){
+        return pc_index;
+    }
+
+    public void setpcRow(int row) {
+        pc_row = row;
+    }
+
+    public int getpcrow() {
+        return pc_row;
+    }
+
+    public PIPELINE_STAGE getStage() {
+        return stage;
+    }
+
+    public void setStage(PIPELINE_STAGE stage) {
+        this.stage = stage;
     }
 
     public int getBounceLocation() {
@@ -140,12 +155,12 @@ public class Instruction {
     private void setImmediateAddress(int address) {
         immAddress = address;
     }
-    
-    public String getInstructionName(){
-       String name;
-       name = operand.getClass().toString();
-       name = name.replace("class hw2.Operands.", "");
-       return name;
+
+    public String getInstructionName() {
+        String name;
+        name = operand.getClass().toString();
+        name = name.replace("class hw2.Operands.", "");
+        return name;
     }
 
     public int getDestination() {
