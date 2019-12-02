@@ -111,6 +111,18 @@ public class Instruction {
             }
         }
     }
+    
+    public int getDestReg(){
+        return destination;
+    }
+    
+    public int getSource1Reg(){
+        return operand.getSource1Reg();
+    }
+    
+    public int getSource2Reg(){
+        return operand.getSource2Reg();
+    }
 
     public void setpcIndex(int index) {
         pc_index = index;

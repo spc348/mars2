@@ -9,6 +9,16 @@ public abstract class Operand<T> {
     private byte opcode;
     protected T source1;
     protected T source2;
+    protected int source1Reg;
+    protected int source2Reg;
+    
+    public int getSource1Reg(){
+        return source1Reg;
+    }
+    
+    public int getSource2Reg(){
+        return source2Reg;
+    }
 
     public T getSource1() {
         return source1;

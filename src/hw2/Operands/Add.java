@@ -5,6 +5,8 @@ public class Add extends Operand<Integer> {
     public Add(String source1, String source2) {
         super.setSource1(Integer.parseInt(source1));
         super.setSource2(Integer.parseInt(source2));
+        super.source1Reg = -1;
+        super.source2Reg = -1;
     }
 
     @Override

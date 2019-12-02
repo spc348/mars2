@@ -5,6 +5,8 @@ public class Subtract extends Operand<Integer> {
     public Subtract(String individualWord, String individualWord0) {
         super.setSource1(Integer.parseInt(individualWord));
         super.setSource2(Integer.parseInt(individualWord0));
+        super.source1Reg = -1;
+        super.source2Reg = -1;
     }
 
     @Override

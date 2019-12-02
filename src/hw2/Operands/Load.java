@@ -4,6 +4,8 @@ public class Load extends Operand<Integer> {
 
     Load(String source1) {
         super.setSource1(Integer.parseInt(source1));
+        super.source1Reg = -1;
+        super.source2Reg = -1;
     }
 
     @Override
@@ -30,10 +32,10 @@ public class Load extends Operand<Integer> {
     public boolean isWriteOperation() {
         return false;
     }
-    
+
     @Override
-    public boolean loadsMemory(){
-       return false;
+    public boolean loadsMemory() {
+        return false;
     }
 
     @Override
