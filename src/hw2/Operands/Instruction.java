@@ -136,7 +136,7 @@ public class Instruction {
         pc_index = index;
     }
     
-    public int getpcindex(){
+    public int getPcIndex(){
         return pc_index;
     }
 

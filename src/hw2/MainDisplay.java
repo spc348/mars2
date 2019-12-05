@@ -8,6 +8,7 @@ package hw2;
 import hw2.Operands.Instruction;
 import hw2.Operands.PIPELINE_STAGE;
 import java.util.ArrayList;
+import java.util.HashMap;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
@@ -45,7 +46,7 @@ public class MainDisplay extends javax.swing.JFrame {
     public int memorizing = 0;
     public int writing = 0;
 
-    public ArrayList<Integer> registersInUse;
+    public HashMap<Instruction, Integer> registersInUse;
 
     /**
      * Creates new form MainDisplay
@@ -459,90 +460,94 @@ public class MainDisplay extends javax.swing.JFrame {
                 inst.setStage(PIPELINE_STAGE.F);
                 inst.setpcIndex(instructionIndex);
                 inst.incrementIndex();
-                pipeline.getModel().setValueAt(inst.getStage(), instructionIndex, inst.getpcindex());
+                pipeline.getModel().setValueAt(inst.getStage(), instructionIndex, inst.getPcIndex());
                 updatePC(instructionIndex, inst);
                 fetching += 1;
             } else if (inst.getStage() == PIPELINE_STAGE.F && decoding < 1) {
                 inst.setStage(PIPELINE_STAGE.D);
-                boolean canAdvance = false;
-                canAdvance &= registersInUse.contains(inst.getDestReg());
-                canAdvance &= registersInUse.contains(inst.getSource1Reg())
-                        && inst.getSource1Reg() != -1;
-                canAdvance &= registersInUse.contains(inst.getSource2Reg())
-                        && inst.getSource2Reg() != -1;
+                boolean canAdvance = true;
                 if (canAdvance) {
                     fetching -= 1;
                     decoding += 1;
                     inst.incrementIndex();
-                    pipeline.getModel().setValueAt(inst.getStage(), instructionIndex, inst.getpcindex());
+                    pipeline.getModel().setValueAt(inst.getStage(), instructionIndex, inst.getPcIndex());
                     updatePC(instructionIndex, inst);
                 } else {
-                    pipeline.getModel().setValueAt(inst.getStage(), instructionIndex, inst.getpcindex());
+                    pipeline.getModel().setValueAt("s", instructionIndex, inst.getPcIndex());
                 }
             } else if (inst.getStage() == PIPELINE_STAGE.D && executing < 1) {
                 inst.setStage(PIPELINE_STAGE.E);
                 boolean canAdvance = false;
-                canAdvance &= registersInUse.contains(inst.getDestReg());
-                canAdvance &= registersInUse.contains(inst.getSource1Reg())
+                canAdvance &= registersInUse.containsValue(inst.getDestReg());
+                canAdvance &= registersInUse.containsValue(inst.getSource1Reg())
                         && inst.getSource1Reg() != -1;
-                canAdvance &= registersInUse.contains(inst.getSource2Reg())
+                canAdvance &= registersInUse.containsValue(inst.getSource2Reg())
                         && inst.getSource2Reg() != -1;
-                registerBuffer.getModel().setValueAt(inst.getResult(),
-                        inst.getDestination(), REGISTER_TABLE_VALUE);
                 if (canAdvance) {
+                    registerBuffer.getModel().setValueAt(inst.getResult(),
+                            inst.getDestination(), REGISTER_TABLE_VALUE);
+
+                    registersInUse.put(inst, inst.getDestReg());
+                    registersInUse.put(inst, inst.getSource1Reg());
+                    registersInUse.put(inst, inst.getSource2Reg());
                     decoding -= 1;
                     executing += 1;
                     inst.incrementIndex();
-                    pipeline.getModel().setValueAt(inst.getStage(), instructionIndex, inst.getpcindex());
+                    pipeline.getModel().setValueAt(inst.getStage(), instructionIndex, inst.getPcIndex());
                     updatePC(instructionIndex, inst);
                 } else {
-                    pipeline.getModel().setValueAt("s", instructionIndex, inst.getpcindex());
+                    pipeline.getModel().setValueAt("s", instructionIndex, inst.getPcIndex());
                 }
             } else if (inst.getStage() == PIPELINE_STAGE.E && memorizing < 1) {
                 inst.setStage(PIPELINE_STAGE.M);
                 boolean canAdvance = false;
-                canAdvance &= registersInUse.contains(inst.getDestReg());
-                canAdvance &= registersInUse.contains(inst.getSource1Reg())
+                canAdvance &= registersInUse.containsValue(inst.getDestReg());
+                canAdvance &= registersInUse.containsValue(inst.getSource1Reg())
                         && inst.getSource1Reg() != -1;
-                canAdvance &= registersInUse.contains(inst.getSource2Reg())
+                canAdvance &= registersInUse.containsValue(inst.getSource2Reg())
                         && inst.getSource2Reg() != -1;
-                memoryTable.getModel().setValueAt(inst.getResult(),
-                        inst.getDestination(), MEMORY_TABLE_VALUE);
                 if (canAdvance) {
+                    
+                    // not sure if this supposed to happen here
+                    memoryTable.getModel().setValueAt(inst.getResult(),
+                            inst.getDestination(), MEMORY_TABLE_VALUE);
+                    
                     executing -= 1;
                     memorizing += 1;
                     inst.incrementIndex();
-                    pipeline.getModel().setValueAt(inst.getStage(), instructionIndex, inst.getpcindex());
+                    pipeline.getModel().setValueAt(inst.getStage(), instructionIndex, inst.getPcIndex());
                     updatePC(instructionIndex, inst);
                 } else {
-                    pipeline.getModel().setValueAt("s", instructionIndex, inst.getpcindex());
+                    pipeline.getModel().setValueAt("s", instructionIndex, inst.getPcIndex());
                 }
             } else if (inst.getStage() == PIPELINE_STAGE.M && writing < 1) {
                 inst.setStage(PIPELINE_STAGE.W);
                 boolean canAdvance = false;
-                canAdvance &= registersInUse.contains(inst.getDestReg());
-                canAdvance &= registersInUse.contains(inst.getSource1Reg())
+                canAdvance &= registersInUse.containsValue(inst.getDestReg());
+                canAdvance &= registersInUse.containsValue(inst.getSource1Reg())
                         && inst.getSource1Reg() != -1;
-                canAdvance &= registersInUse.contains(inst.getSource2Reg())
+                canAdvance &= registersInUse.containsValue(inst.getSource2Reg())
                         && inst.getSource2Reg() != -1;
 
-                memoryTable.getModel().setValueAt(inst.getResult(),
-                        inst.getDestination(), MEMORY_TABLE_VALUE);
+                // determine who needs to write here
+//                memoryTable.getModel().setValueAt(inst.getResult(),
+//                        inst.getDestination(), MEMORY_TABLE_VALUE);
 
                 if (canAdvance) {
                     memorizing -= 1;
                     writing += 1;
                     inst.incrementIndex();
-                    pipeline.getModel().setValueAt(inst.getStage(), instructionIndex, inst.getpcindex());
+                    pipeline.getModel().setValueAt(inst.getStage(), instructionIndex, inst.getPcIndex());
                     updatePC(instructionIndex, inst);
                 } else {
-                    pipeline.getModel().setValueAt("s", instructionIndex, inst.getpcindex());
+                    pipeline.getModel().setValueAt("s", instructionIndex, inst.getPcIndex());
                 }
             } else if (inst.getStage() == PIPELINE_STAGE.W) {
                 writing -= 1;
+                registersInUse.remove(inst);
             } else {
                 inst.incrementIndex();
-                pipeline.getModel().setValueAt("s", instructionIndex, inst.getpcindex());
+                pipeline.getModel().setValueAt("s", instructionIndex, inst.getPcIndex());
             }
         }
     }//GEN-LAST:event_stepOneButtonActionPerformed
@@ -718,7 +723,7 @@ public class MainDisplay extends javax.swing.JFrame {
                 pipeline.getModel().setValueAt("", i, j);
             }
         }
-        registersInUse = new ArrayList<>(REGISTER_NAMES.length);
+        registersInUse = new HashMap();
     }
 
     private void updatePC(int index, Instruction inst) {
