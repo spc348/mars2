@@ -124,7 +124,7 @@ public class Instruction {
         return operand.getSource2Reg();
     }
 
-    public void setpcIndex(int index) {
+    public void setPcIndex(int index) {
         pc_index = index;
     }
     
@@ -140,7 +140,7 @@ public class Instruction {
         return pc_index;
     }
 
-    public void setpcRow(int row) {
+    public void setPcRow(int row) {
         pc_row = row;
     }
 
