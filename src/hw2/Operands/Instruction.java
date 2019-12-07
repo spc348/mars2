@@ -31,9 +31,11 @@ public class Instruction {
     private int pc_index;
     private int pc_row;
     private JTable pipeline;
+    private String rawInstruction;
 
     public Instruction(String str, JTable registerTable, JTable memoryTable, JTable pipeline) {
         this.immAddress = 0;
+        this.rawInstruction = str;
         String[] individualWords = str.split(" ");
         assert (individualWords.length >= 3);
 
@@ -111,32 +113,36 @@ public class Instruction {
             }
         }
     }
-    
-    public int getDestReg(){
+
+    public String getRawInstruction() {
+        return rawInstruction;
+    }
+
+    public int getDestReg() {
         return destination;
     }
-    
-    public int getSource1Reg(){
+
+    public int getSource1Reg() {
         return operand.getSource1Reg();
     }
-    
-    public int getSource2Reg(){
+
+    public int getSource2Reg() {
         return operand.getSource2Reg();
     }
 
     public void setPcIndex(int index) {
         pc_index = index;
     }
-    
-    public void incrementIndex(){
+
+    public void incrementIndex() {
         pc_index += 1;
     }
-    
-    public void setpcindex(int index){
+
+    public void setpcindex(int index) {
         pc_index = index;
     }
-    
-    public int getPcIndex(){
+
+    public int getPcIndex() {
         return pc_index;
     }
 

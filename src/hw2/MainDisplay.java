@@ -9,6 +9,7 @@ import hw2.Operands.Instruction;
 import hw2.Operands.PIPELINE_STAGE;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
@@ -46,7 +47,11 @@ public class MainDisplay extends javax.swing.JFrame {
     public int memorizing = 0;
     public int writing = 0;
 
-    public HashMap<Instruction, Integer> registersInUse;
+    private int fastMode = 0;
+    private final int FASTMODE_ENABLED = 1;
+    private final int FASTMODE_DISABLED = 0;
+
+    public HashMap<Instruction, Integer> registersInUse = new HashMap<>();
 
     /**
      * Creates new form MainDisplay
@@ -126,7 +131,7 @@ public class MainDisplay extends javax.swing.JFrame {
 
         textEditor.setColumns(20);
         textEditor.setRows(5);
-        textEditor.setText("add $t0 1 9\nadd $t1 0 16\naddr $t2 $t1 $t0\nsubr $t3 $t1 $t2");
+        textEditor.setText("add $t0 1 9\nadd $t0 0 16\naddr $t2 $t1 $t0\nsubr $t3 $t1 $t2");
         textEditor.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 textEditorKeyTyped(evt);
@@ -204,6 +209,7 @@ public class MainDisplay extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
+        codeModel.getTableHeader().setReorderingAllowed(false);
         jScrollPane4.setViewportView(codeModel);
         if (codeModel.getColumnModel().getColumnCount() > 0) {
             codeModel.getColumnModel().getColumn(0).setResizable(false);
@@ -243,6 +249,7 @@ public class MainDisplay extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
+        pipeline.getTableHeader().setReorderingAllowed(false);
         jScrollPane2.setViewportView(pipeline);
         if (pipeline.getColumnModel().getColumnCount() > 0) {
             pipeline.getColumnModel().getColumn(1).setResizable(false);
@@ -464,6 +471,9 @@ public class MainDisplay extends javax.swing.JFrame {
             } else if (inst.getStage() == PIPELINE_STAGE.F) {
                 if (decoding < 1) {
                     inst.setStage(PIPELINE_STAGE.D);
+                    if (fastMode == FASTMODE_DISABLED) {
+                        reserveSourceRegisters(inst);
+                    }
                     fetching -= 1;
                     decoding += 1;
                     advance(inst);
@@ -473,9 +483,10 @@ public class MainDisplay extends javax.swing.JFrame {
             } else if (inst.getStage() == PIPELINE_STAGE.D) {
                 if (checkCanAdvance(inst) && executing < 1) {
                     inst.setStage(PIPELINE_STAGE.E);
-                    reserveSourceRegisters(inst);
-                    registerBuffer.getModel().setValueAt(inst.getResult(),
-                            inst.getDestination(), REGISTER_TABLE_VALUE);
+                    if (fastMode == FASTMODE_ENABLED) {
+                        reserveSourceRegisters(inst);
+                    }
+                    registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
                     decoding -= 1;
                     executing += 1;
                     advance(inst);
@@ -485,10 +496,8 @@ public class MainDisplay extends javax.swing.JFrame {
             } else if (inst.getStage() == PIPELINE_STAGE.E) {
                 if (checkCanAdvance(inst) && memorizing < 1) {
                     inst.setStage(PIPELINE_STAGE.M);
-                    releaseSourceRegisters(inst);
                     // not sure if this supposed to happen here
-                    memoryTable.getModel().setValueAt(inst.getResult(),
-                            inst.getDestination(), MEMORY_TABLE_VALUE);
+                    memoryTable.getModel().setValueAt(inst.getResult(), inst.getDestination(), MEMORY_TABLE_VALUE);
                     executing -= 1;
                     memorizing += 1;
                     advance(inst);
@@ -496,9 +505,10 @@ public class MainDisplay extends javax.swing.JFrame {
                     stall(inst);
                 }
             } else if (inst.getStage() == PIPELINE_STAGE.M) {
-                // determine who needs to write here
-//                memoryTable.getModel().setValueAt(inst.getResult(),
-//                        inst.getDestination(), MEMORY_TABLE_VALUE);
+                if (fastMode == FASTMODE_ENABLED) {
+                    releaseSourceRegisters(inst);
+                }
+//                memoryTable.getModel().setValueAt(inst.getResult(),inst.getDestination(), MEMORY_TABLE_VALUE);
                 if (checkCanAdvance(inst) && writing < 1) {
                     inst.setStage(PIPELINE_STAGE.W);
                     reserveDestination(inst);
@@ -511,12 +521,19 @@ public class MainDisplay extends javax.swing.JFrame {
             } else if (inst.getStage() == PIPELINE_STAGE.W) {
                 writing -= 1;
                 releaseDestination(inst);
-                if (registersInUse.containsKey(inst)) {
-                    registersInUse.remove(inst);
+                if (fastMode == FASTMODE_DISABLED) {
+                    releaseSourceRegisters(inst);
                 }
+                releaseInstruction(inst);
             }
         }
     }//GEN-LAST:event_stepOneButtonActionPerformed
+
+    private void releaseInstruction(Instruction inst) {
+        if (registersInUse.containsKey(inst)) {
+            registersInUse.remove(inst);
+        }
+    }
 
     private void reserveSourceRegisters(Instruction inst) {
         if (inst.getSource1Reg() > 0) {
@@ -529,7 +546,7 @@ public class MainDisplay extends javax.swing.JFrame {
 
     private void reserveDestination(Instruction inst) {
         if (inst.getDestReg() > 0) {
-            registersInUse.put(inst, inst.getDestReg());
+            registersInUse.putIfAbsent(inst, inst.getDestReg());
         }
     }
 
@@ -545,17 +562,37 @@ public class MainDisplay extends javax.swing.JFrame {
         }
         boolean destRegBusy = registersInUse.containsValue(inst.getDestReg());
         if (destRegBusy) {
+            destRegBusy = compareInstruction(inst, inst.getDestReg());
             System.out.println("Busy reg at " + inst.getDestReg());
         }
         boolean src1RegBusy = registersInUse.containsValue(inst.getSource1Reg());
         if (src1RegBusy) {
+            src1RegBusy = compareInstruction(inst, inst.getSource1Reg());
             System.out.println("Busy reg at " + inst.getSource1Reg());
         }
         boolean src2RegBusy = registersInUse.containsValue(inst.getSource2Reg());
         if (src2RegBusy) {
+            src2RegBusy = compareInstruction(inst, inst.getSource2Reg());
             System.out.println("Busy reg at " + inst.getSource2Reg());
         }
         return !destRegBusy && !src1RegBusy && !src2RegBusy;
+    }
+
+    private boolean compareInstruction(Instruction inst, int register) {
+        Instruction other = null;
+        boolean busy = false;
+        for (Entry<Instruction, Integer> entry : registersInUse.entrySet()) {
+            if (entry.getValue().equals(register)) {
+                other = entry.getKey();
+                break;
+            }
+        }
+        if(other != null && other.getPcIndex() > inst.getPcIndex()){
+            busy = false;
+        } else {
+            busy = true;
+        }
+        return busy;
     }
 
     private void advance(Instruction inst) {
@@ -741,14 +778,13 @@ public class MainDisplay extends javax.swing.JFrame {
                 pipeline.getModel().setValueAt("", i, j);
             }
         }
-        registersInUse = new HashMap();
     }
 
     private void updatePC(int index, Instruction inst) {
         registerBuffer.getModel().setValueAt(index, 29, REGISTER_TABLE_VALUE);
 //        String old = codeModel.getModel().getValueAt(index, 0).toString();
 //        codeModel.getModel().setValueAt("> " + old, index, 0);
-        pipeline.getModel().setValueAt(inst.getInstructionName(), index, 0);
+        pipeline.getModel().setValueAt(inst.getRawInstruction(), index, 0);
     }
 
     private void releaseSourceRegisters(Instruction inst) {
