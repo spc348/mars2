@@ -16,6 +16,8 @@ public class AddRegisters extends Add {
     public AddRegisters(String source1, String source2) {
         super(String.valueOf(new RegisterLookup(source1).getRegisterNumber()),
                 String.valueOf(new RegisterLookup(source2).getRegisterNumber()));
+        source1Reg = new RegisterLookup(source1).getRegisterNumber();
+        source2Reg = new RegisterLookup(source2).getRegisterNumber();
     }
 
     @Override

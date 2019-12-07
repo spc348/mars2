@@ -150,7 +150,7 @@ public class Instruction {
         pc_row = row;
     }
 
-    public int getpcrow() {
+    public int getPcRow() {
         return pc_row;
     }
 

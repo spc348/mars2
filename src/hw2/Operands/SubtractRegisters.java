@@ -16,6 +16,8 @@ public class SubtractRegisters extends Operand<Integer> {
     public SubtractRegisters(String source1, String source2) {
         super.setSource1(new RegisterLookup(source1).getRegisterNumber());
         super.setSource2(new RegisterLookup(source2).getRegisterNumber());
+        source1Reg = new RegisterLookup(source1).getRegisterNumber();
+        source2Reg = new RegisterLookup(source2).getRegisterNumber();
     }
 
     @Override

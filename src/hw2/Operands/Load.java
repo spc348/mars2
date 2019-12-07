@@ -4,7 +4,7 @@ public class Load extends Operand<Integer> {
 
     Load(String source1) {
         super.setSource1(Integer.parseInt(source1));
-        super.source1Reg = -1;
+        super.source1Reg = Integer.parseInt(source1);
         super.source2Reg = -1;
     }
 
