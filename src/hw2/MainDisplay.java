@@ -26,7 +26,7 @@ public class MainDisplay extends javax.swing.JFrame {
     public static final int MEMORY_TABLE_VALUE = 1;
     private final String[][] memoryModelTable = new String[128][9];
     private final TableModel memoryModel;
-    private int initial_pc_row = 0;
+    private int initialPcRow = 0;
     public final static String[] REGISTER_NAMES
             = {"$zero", "$at", "$v0", "$v1",
                 "$a0", "$a1", "$a2", "$a3", "$t0",
@@ -372,7 +372,7 @@ public class MainDisplay extends javax.swing.JFrame {
 
     private void compileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compileButtonActionPerformed
         Clear();
-        initial_pc_row = 0;
+        initialPcRow = 0;
         instructionRaw = textEditor.getText();
         instructionLines = instructionRaw.split("\n");
         for (int i = 0; i < instructionLines.length; i++) {
@@ -473,9 +473,9 @@ public class MainDisplay extends javax.swing.JFrame {
             } else if (inst.getStage() == PIPELINE_STAGE.D) {
                 if (checkCanAdvance(inst) && executing < 1) {
                     inst.setStage(PIPELINE_STAGE.E);
+                    reserveSourceRegisters(inst);
                     registerBuffer.getModel().setValueAt(inst.getResult(),
                             inst.getDestination(), REGISTER_TABLE_VALUE);
-                    reserveRegisters(inst);
                     decoding -= 1;
                     executing += 1;
                     advance(inst);
@@ -485,10 +485,10 @@ public class MainDisplay extends javax.swing.JFrame {
             } else if (inst.getStage() == PIPELINE_STAGE.E) {
                 if (checkCanAdvance(inst) && memorizing < 1) {
                     inst.setStage(PIPELINE_STAGE.M);
+                    releaseSourceRegisters(inst);
                     // not sure if this supposed to happen here
                     memoryTable.getModel().setValueAt(inst.getResult(),
                             inst.getDestination(), MEMORY_TABLE_VALUE);
-                    reserveRegisters(inst);
                     executing -= 1;
                     memorizing += 1;
                     advance(inst);
@@ -501,7 +501,7 @@ public class MainDisplay extends javax.swing.JFrame {
 //                        inst.getDestination(), MEMORY_TABLE_VALUE);
                 if (checkCanAdvance(inst) && writing < 1) {
                     inst.setStage(PIPELINE_STAGE.W);
-                    reserveRegisters(inst);
+                    reserveDestination(inst);
                     memorizing -= 1;
                     writing += 1;
                     advance(inst);
@@ -510,15 +510,15 @@ public class MainDisplay extends javax.swing.JFrame {
                 }
             } else if (inst.getStage() == PIPELINE_STAGE.W) {
                 writing -= 1;
-                registersInUse.remove(inst);
+                releaseDestination(inst);
+                if (registersInUse.containsKey(inst)) {
+                    registersInUse.remove(inst);
+                }
             }
         }
     }//GEN-LAST:event_stepOneButtonActionPerformed
 
-    private void reserveRegisters(Instruction inst) {
-        if (inst.getDestReg() > 0) {
-            registersInUse.put(inst, inst.getDestReg());
-        }
+    private void reserveSourceRegisters(Instruction inst) {
         if (inst.getSource1Reg() > 0) {
             registersInUse.put(inst, inst.getSource1Reg());
         }
@@ -527,13 +527,35 @@ public class MainDisplay extends javax.swing.JFrame {
         }
     }
 
+    private void reserveDestination(Instruction inst) {
+        if (inst.getDestReg() > 0) {
+            registersInUse.put(inst, inst.getDestReg());
+        }
+    }
+
+    private void releaseDestination(Instruction inst) {
+        if (registersInUse.containsValue(inst.getDestReg())) {
+            registersInUse.values().remove(inst.getDestReg());
+        }
+    }
+
     private boolean checkCanAdvance(Instruction inst) {
         if (registersInUse.isEmpty()) {
             return true;
         }
-        return !registersInUse.containsValue(inst.getDestReg())
-                && (inst.getSource1Reg() <= 0 || !registersInUse.containsValue(inst.getSource1Reg()))
-                && (inst.getSource2Reg() <= 0 || !registersInUse.containsValue(inst.getSource2Reg()));
+        boolean destRegBusy = registersInUse.containsValue(inst.getDestReg());
+        if (destRegBusy) {
+            System.out.println("Busy reg at " + inst.getDestReg());
+        }
+        boolean src1RegBusy = registersInUse.containsValue(inst.getSource1Reg());
+        if (src1RegBusy) {
+            System.out.println("Busy reg at " + inst.getSource1Reg());
+        }
+        boolean src2RegBusy = registersInUse.containsValue(inst.getSource2Reg());
+        if (src2RegBusy) {
+            System.out.println("Busy reg at " + inst.getSource2Reg());
+        }
+        return !destRegBusy && !src1RegBusy && !src2RegBusy;
     }
 
     private void advance(Instruction inst) {
@@ -727,5 +749,14 @@ public class MainDisplay extends javax.swing.JFrame {
 //        String old = codeModel.getModel().getValueAt(index, 0).toString();
 //        codeModel.getModel().setValueAt("> " + old, index, 0);
         pipeline.getModel().setValueAt(inst.getInstructionName(), index, 0);
+    }
+
+    private void releaseSourceRegisters(Instruction inst) {
+        if (registersInUse.containsValue(inst.getSource1Reg())) {
+            registersInUse.values().remove(inst.getSource1Reg());
+        }
+        if (registersInUse.containsValue(inst.getSource2Reg())) {
+            registersInUse.values().remove(inst.getSource2Reg());
+        }
     }
 }
