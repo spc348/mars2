@@ -32,6 +32,7 @@
                   <Component id="clearButton" alignment="1" max="32767" attributes="0"/>
                   <Component id="stepOneButton" max="32767" attributes="0"/>
                   <Component id="compileButton" alignment="0" max="32767" attributes="0"/>
+                  <Component id="forwardingButton" alignment="1" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jScrollPane5" min="-2" pref="211" max="-2" attributes="0"/>
@@ -50,6 +51,8 @@
               <Component id="runButton" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="clearButton" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="forwardingButton" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
           <Group type="102" alignment="0" attributes="0">
@@ -444,5 +447,13 @@
         </Component>
       </SubComponents>
     </Container>
+    <Component class="javax.swing.JButton" name="forwardingButton">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Forwarding"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="forwardingButtonActionPerformed"/>
+      </Events>
+    </Component>
   </SubComponents>
 </Form>

@@ -6,6 +6,8 @@ public class LoadRegister extends Load {
 
     public LoadRegister(String source1) {
         super(String.valueOf(new RegisterLookup(source1).getRegisterNumber()));
+        source1Reg = new RegisterLookup(source1).getRegisterNumber();
+        source2Reg = -1;
     }
 
     @Override

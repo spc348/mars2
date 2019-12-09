@@ -23,6 +23,8 @@ public class LoadMemory extends Load {
       this.offset = twosComplement(parts[0]);
       
       super.setSource1(registerNumberToWrite + offset);
+      source1Reg = registerNumberToWrite;
+      source2Reg = -1;
    }
 
    public int getRegisterNumberToWrite() {

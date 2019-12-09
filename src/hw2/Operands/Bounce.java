@@ -10,9 +10,10 @@ package hw2.Operands;
  * @author cahn
  */
 public class Bounce extends Operand<Integer> {
-    
-    public Bounce(String val){
+
+    public Bounce(String val) {
         super.setSource1(Integer.parseInt(val));
+        source1Reg = Integer.parseInt(val);
     }
 
     @Override
@@ -49,8 +50,8 @@ public class Bounce extends Operand<Integer> {
     public boolean isBounce() {
         return true;
     }
-    
-    public int getBounceLocation(){
+
+    public int getBounceLocation() {
         return source1;
     }
 
