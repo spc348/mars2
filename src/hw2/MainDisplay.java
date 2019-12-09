@@ -10,6 +10,7 @@ import hw2.Operands.PIPELINE_STAGE;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Objects;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
@@ -75,12 +76,18 @@ public class MainDisplay extends javax.swing.JFrame {
 
     private class RegisterInfo {
 
-        int registerNumber;
-        int registerUse;
+        private int registerNumber;
+        private int registerUse;
+        private Instruction inst;
 
-        public RegisterInfo(int registerNumber, int registerUse) {
+        public RegisterInfo(int registerNumber, int registerUse, Instruction inst) {
             this.registerNumber = registerNumber;
             this.registerUse = registerUse;
+            this.inst = inst;
+        }
+
+        public Instruction getInstruction() {
+            return inst;
         }
 
         public int getRegisterNumber() {
@@ -113,6 +120,9 @@ public class MainDisplay extends javax.swing.JFrame {
                 return false;
             }
             if (this.registerUse != other.registerUse) {
+                return false;
+            }
+            if (!Objects.equals(this.inst, other.inst)) {
                 return false;
             }
             return true;
@@ -608,9 +618,10 @@ public class MainDisplay extends javax.swing.JFrame {
 
     private void reserveSourceRegisters(Instruction inst) {
         if (inst.getSource1Reg() > 0) {
-            RegisterInfo r = new RegisterInfo(inst.getSource1Reg(), SOURCE);
+            RegisterInfo r = new RegisterInfo(inst.getSource1Reg(), SOURCE, inst);
             if (registersInUse.containsValue(r)) {
-                if (!compareInstruction(inst, inst.getSource1Reg(), r)) {
+                RegisterInfo other = compareInstruction(inst, inst.getSource1Reg(), r);
+                if (other != null && other.getInstruction().getPcRow() > inst.getPcRow()) {
                     registersInUse.remove(inst, r);
                     registersInUse.put(inst, r);
                 }
@@ -619,9 +630,10 @@ public class MainDisplay extends javax.swing.JFrame {
             }
         }
         if (inst.getSource2Reg() > 0) {
-            RegisterInfo r = new RegisterInfo(inst.getSource2Reg(), SOURCE);
+            RegisterInfo r = new RegisterInfo(inst.getSource2Reg(), SOURCE, inst);
             if (registersInUse.containsValue(r)) {
-                if (!compareInstruction(inst, inst.getSource2Reg(), r)) {
+                RegisterInfo other = compareInstruction(inst, inst.getSource2Reg(), r);
+                if (other != null && other.getInstruction().getPcRow() > inst.getPcRow()) {
                     registersInUse.remove(inst, r);
                     registersInUse.put(inst, r);
                 }
@@ -633,9 +645,10 @@ public class MainDisplay extends javax.swing.JFrame {
 
     private void reserveDestination(Instruction inst) {
         if (inst.getDestReg() > 0) {
-            RegisterInfo r = new RegisterInfo(inst.getDestReg(), DESTINATION);
+            RegisterInfo r = new RegisterInfo(inst.getDestReg(), DESTINATION, inst);
             if (registersInUse.containsValue(r)) {
-                if (!compareInstruction(inst, inst.getDestReg(), r)) {
+                RegisterInfo other = compareInstruction(inst, inst.getDestReg(), r);
+                if (other != null && other.getInstruction().getPcRow() > inst.getPcRow()) {
                     registersInUse.remove(inst, r);
                     registersInUse.put(inst, r);
                 }
@@ -646,35 +659,54 @@ public class MainDisplay extends javax.swing.JFrame {
     }
 
     private void releaseDestination(Instruction inst) {
-        RegisterInfo r = new RegisterInfo(inst.getDestReg(), DESTINATION);
+        RegisterInfo r = new RegisterInfo(inst.getDestReg(), DESTINATION, inst);
         if (registersInUse.containsValue(r)) {
             registersInUse.values().remove(r);
         }
     }
 
     private boolean checkCanAdvance(Instruction inst) {
+        boolean otherIsDest = false;
         if (registersInUse.isEmpty()) {
             return true;
         }
-        RegisterInfo r = new RegisterInfo(inst.getDestReg(), DESTINATION);
+        RegisterInfo r = new RegisterInfo(inst.getDestReg(), DESTINATION, inst);
         boolean destRegBusy = registersInUse.containsValue(r);
         if (destRegBusy) {
-            destRegBusy = compareInstruction(inst, inst.getDestReg(), r);
-            log(inst, DESTINATION);
+            RegisterInfo other = compareInstruction(inst, inst.getDestReg(), r);
+            if (other != null) {
+                destRegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
+                otherIsDest = other.getRegisterUse() == DESTINATION;
+                log(inst, DESTINATION);
+            } else { // found itself
+                destRegBusy = false;
+            }
         }
-        r = new RegisterInfo(inst.getSource1Reg(), SOURCE);
+        r = new RegisterInfo(inst.getSource1Reg(), SOURCE, inst);
         boolean src1RegBusy = registersInUse.containsValue(r);
         if (src1RegBusy) {
-            src1RegBusy = compareInstruction(inst, inst.getSource1Reg(), r);
-            log(inst, SOURCE1);
+            RegisterInfo other = compareInstruction(inst, inst.getSource1Reg(), r);
+            if (other != null) {
+                src1RegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
+                otherIsDest = other.getRegisterUse() == DESTINATION;
+                log(inst, SOURCE1);
+            } else {// found itself
+                src1RegBusy = false;
+            }
         }
-        r = new RegisterInfo(inst.getSource2Reg(), SOURCE);
+        r = new RegisterInfo(inst.getSource2Reg(), SOURCE, inst);
         boolean src2RegBusy = registersInUse.containsValue(r);
         if (src2RegBusy) {
-            src2RegBusy = compareInstruction(inst, inst.getSource2Reg(), r);
-            log(inst, SOURCE2);
+            RegisterInfo other = compareInstruction(inst, inst.getSource2Reg(), r);
+            if (other != null) {
+                src2RegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
+                otherIsDest = other.getRegisterUse() == DESTINATION;
+                log(inst, SOURCE2);
+            } else {// found itself
+                src2RegBusy = false;
+            }
         }
-        return !destRegBusy && !src1RegBusy && !src2RegBusy;
+        return !destRegBusy && !src1RegBusy && !src2RegBusy && !otherIsDest;
     }
 
     private void log(Instruction inst, int sourceType) {
@@ -697,26 +729,18 @@ public class MainDisplay extends javax.swing.JFrame {
         log.setText(log.getText() + "\n" + step + " [" + inst.getPcRow() + "]" + " Structual hazard at " + stage);
     }
 
-    private boolean compareInstruction(Instruction inst, int register, RegisterInfo info) {
-        Instruction other = null;
-        boolean busy = false;
-        boolean justSources = false;
+    private RegisterInfo compareInstruction(Instruction inst, int register, RegisterInfo info) {
         RegisterInfo r = null;
         for (Entry<Instruction, RegisterInfo> entry : registersInUse.entrySet()) {
             if (entry.getValue().getRegisterNumber() == register) {
                 if (entry.getKey() == inst) {
                     continue;
                 }
-                other = entry.getKey();
                 r = entry.getValue();
                 break;
             }
         }
-        if (other != null && r != null) {
-            busy = (other != inst && other.getPcRow() < inst.getPcRow());
-            justSources = (r.getRegisterUse() == SOURCE && info.getRegisterUse() == r.getRegisterUse());
-        }
-        return busy && !justSources;
+        return r;
     }
 
     private void advance(Instruction inst) {
