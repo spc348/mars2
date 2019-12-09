@@ -27,7 +27,6 @@ public class MainDisplay extends javax.swing.JFrame {
     public static final int MEMORY_TABLE_VALUE = 1;
     private final String[][] memoryModelTable = new String[128][9];
     private final TableModel memoryModel;
-    private int initialPcRow = 0;
     public final static String[] REGISTER_NAMES
             = {"$zero", "$at", "$v0", "$v1",
                 "$a0", "$a1", "$a2", "$a3", "$t0",
@@ -54,6 +53,8 @@ public class MainDisplay extends javax.swing.JFrame {
 
     private final int DESTINATION = 0;
     private final int SOURCE = -1;
+    private final int SOURCE1 = 1;
+    private final int SOURCE2 = 2;
 
     public HashMap<Instruction, RegisterInfo> registersInUse = new HashMap<>();
 
@@ -408,7 +409,6 @@ public class MainDisplay extends javax.swing.JFrame {
 
     private void compileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compileButtonActionPerformed
         Clear();
-        initialPcRow = 0;
         instructionRaw = textEditor.getText();
         instructionLines = instructionRaw.split("\n");
         for (int i = 0; i < instructionLines.length; i++) {
@@ -505,7 +505,7 @@ public class MainDisplay extends javax.swing.JFrame {
                     fetching += 1;
                 } else {
                     if (inst.getStage() != null) {
-                        log.setText(log.getText() + "\n" + step + " Structual hazard at " + inst.getStage());
+                        log(inst, inst.getStage());
                     }
                     stall(inst);
                 }
@@ -523,7 +523,7 @@ public class MainDisplay extends javax.swing.JFrame {
                             advance(inst);
                         } else {
                             if (inst.getStage() != null) {
-                                log.setText(log.getText() + "\n" + step + " Structual hazard at " + inst.getStage());
+                                log(inst, inst.getStage());
                             }
                             stall(inst);
                         }
@@ -531,8 +531,9 @@ public class MainDisplay extends javax.swing.JFrame {
                     case D:
                         if (checkCanAdvance(inst) && executing < 1) {
                             inst.setStage(PIPELINE_STAGE.E);
-                            if (fastMode == FASTMODE_ENABLED) {
-                                reserveSourceRegisters(inst);
+                            reserveSourceRegisters(inst);
+                            if (fastMode == FASTMODE_DISABLED) {
+                                reserveDestination(inst);
                             }
                             registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
                             decoding -= 1;
@@ -541,7 +542,7 @@ public class MainDisplay extends javax.swing.JFrame {
                         } else {
                             if (executing > 1) {
                                 if (inst.getStage() != null) {
-                                    log.setText(log.getText() + "\n" + step + " Structual hazard at " + inst.getStage());
+                                    log(inst, inst.getStage());
                                 }
                             }
                             stall(inst);
@@ -550,25 +551,22 @@ public class MainDisplay extends javax.swing.JFrame {
                     case E:
                         if (checkCanAdvance(inst) && memorizing < 1) {
                             inst.setStage(PIPELINE_STAGE.M);
-                            if (!inst.getIsWriteOperation()) {
-                                memoryTable.getModel().setValueAt(inst.getResult(), inst.getDestination(), MEMORY_TABLE_VALUE);
-                            }
                             executing -= 1;
                             memorizing += 1;
                             advance(inst);
+                            if (fastMode == FASTMODE_ENABLED) {
+                                releaseSourceRegisters(inst);
+                            }
                         } else {
                             if (memorizing > 1) {
                                 if (inst.getStage() != null) {
-                                    log.setText(log.getText() + "\n" + step + " Structual hazard at " + inst.getStage());
+                                    log(inst, inst.getStage());
                                 }
                             }
                             stall(inst);
                         }
                         break;
                     case M:
-                        if (fastMode == FASTMODE_ENABLED) {
-                            releaseSourceRegisters(inst);
-                        }
                         if (checkCanAdvance(inst) && writing < 1) {
                             inst.setStage(PIPELINE_STAGE.W);
                             if (inst.getIsWriteOperation()) {
@@ -583,7 +581,7 @@ public class MainDisplay extends javax.swing.JFrame {
                         } else {
                             if (writing > 1) {
                                 if (inst.getStage() != null) {
-                                    log.setText(log.getText() + "\n" + step + " Structual hazard at " + inst.getStage());
+                                    log(inst, inst.getStage());
                                 }
                             }
                             stall(inst);
@@ -592,9 +590,7 @@ public class MainDisplay extends javax.swing.JFrame {
                     case W:
                         writing -= 1;
                         releaseDestination(inst);
-                        if (fastMode == FASTMODE_DISABLED) {
-                            releaseSourceRegisters(inst);
-                        }
+                        releaseSourceRegisters(inst);
                         releaseInstruction(inst);
                         break;
                     default:
@@ -612,17 +608,40 @@ public class MainDisplay extends javax.swing.JFrame {
 
     private void reserveSourceRegisters(Instruction inst) {
         if (inst.getSource1Reg() > 0) {
-            registersInUse.putIfAbsent(inst, new RegisterInfo(inst.getSource1Reg(), SOURCE));
-
+            RegisterInfo r = new RegisterInfo(inst.getSource1Reg(), SOURCE);
+            if (registersInUse.containsValue(r)) {
+                if (!compareInstruction(inst, inst.getSource1Reg(), r)) {
+                    registersInUse.remove(inst, r);
+                    registersInUse.put(inst, r);
+                }
+            } else {
+                registersInUse.putIfAbsent(inst, r);
+            }
         }
         if (inst.getSource2Reg() > 0) {
-            registersInUse.putIfAbsent(inst, new RegisterInfo(inst.getSource2Reg(), SOURCE));
+            RegisterInfo r = new RegisterInfo(inst.getSource2Reg(), SOURCE);
+            if (registersInUse.containsValue(r)) {
+                if (!compareInstruction(inst, inst.getSource2Reg(), r)) {
+                    registersInUse.remove(inst, r);
+                    registersInUse.put(inst, r);
+                }
+            } else {
+                registersInUse.putIfAbsent(inst, r);
+            }
         }
     }
 
     private void reserveDestination(Instruction inst) {
         if (inst.getDestReg() > 0) {
-            registersInUse.putIfAbsent(inst, new RegisterInfo(inst.getDestReg(), DESTINATION));
+            RegisterInfo r = new RegisterInfo(inst.getDestReg(), DESTINATION);
+            if (registersInUse.containsValue(r)) {
+                if (!compareInstruction(inst, inst.getDestReg(), r)) {
+                    registersInUse.remove(inst, r);
+                    registersInUse.put(inst, r);
+                }
+            } else {
+                registersInUse.putIfAbsent(inst, r);
+            }
         }
     }
 
@@ -640,40 +659,64 @@ public class MainDisplay extends javax.swing.JFrame {
         RegisterInfo r = new RegisterInfo(inst.getDestReg(), DESTINATION);
         boolean destRegBusy = registersInUse.containsValue(r);
         if (destRegBusy) {
-            destRegBusy = compareInstruction(inst, inst.getDestReg());
-            log.setText(log.getText() + "\n" + step + " Dest reg busy at " + inst.getDestReg());
+            destRegBusy = compareInstruction(inst, inst.getDestReg(), r);
+            log(inst, DESTINATION);
         }
         r = new RegisterInfo(inst.getSource1Reg(), SOURCE);
         boolean src1RegBusy = registersInUse.containsValue(r);
         if (src1RegBusy) {
-            src1RegBusy = compareInstruction(inst, inst.getSource1Reg());
-            log.setText(log.getText() + "\n" + step + " Src1 reg busy at " + inst.getSource1Reg());
+            src1RegBusy = compareInstruction(inst, inst.getSource1Reg(), r);
+            log(inst, SOURCE1);
         }
         r = new RegisterInfo(inst.getSource2Reg(), SOURCE);
         boolean src2RegBusy = registersInUse.containsValue(r);
         if (src2RegBusy) {
-            src2RegBusy = compareInstruction(inst, inst.getSource2Reg());
-            log.setText(log.getText() + "\n" + step + " Src2 reg busy at " + inst.getSource2Reg());
+            src2RegBusy = compareInstruction(inst, inst.getSource2Reg(), r);
+            log(inst, SOURCE2);
         }
         return !destRegBusy && !src1RegBusy && !src2RegBusy;
     }
 
-    private boolean compareInstruction(Instruction inst, int register) {
+    private void log(Instruction inst, int sourceType) {
+        switch (sourceType) {
+            case DESTINATION:
+                log.setText(log.getText() + "\n" + step + " [" + inst.getPcRow() + "]" + " Dest reg busy at " + inst.getDestReg());
+                break;
+            case SOURCE1:
+                log.setText(log.getText() + "\n" + step + " [" + inst.getPcRow() + "]" + " Src1 reg busy at " + inst.getSource1Reg());
+                break;
+            case SOURCE2:
+                log.setText(log.getText() + "\n" + step + " [" + inst.getPcRow() + "]" + " Src2 reg busy at " + inst.getSource2Reg());
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void log(Instruction inst, PIPELINE_STAGE stage) {
+        log.setText(log.getText() + "\n" + step + " [" + inst.getPcRow() + "]" + " Structual hazard at " + stage);
+    }
+
+    private boolean compareInstruction(Instruction inst, int register, RegisterInfo info) {
         Instruction other = null;
         boolean busy = false;
+        boolean justSources = false;
+        RegisterInfo r = null;
         for (Entry<Instruction, RegisterInfo> entry : registersInUse.entrySet()) {
             if (entry.getValue().getRegisterNumber() == register) {
                 if (entry.getKey() == inst) {
                     continue;
                 }
                 other = entry.getKey();
+                r = entry.getValue();
                 break;
             }
         }
-        if (other != null) {
+        if (other != null && r != null) {
             busy = (other != inst && other.getPcRow() < inst.getPcRow());
+            justSources = (r.getRegisterUse() == SOURCE && info.getRegisterUse() == r.getRegisterUse());
         }
-        return busy;
+        return busy && !justSources;
     }
 
     private void advance(Instruction inst) {
@@ -720,7 +763,7 @@ public class MainDisplay extends javax.swing.JFrame {
     }//GEN-LAST:event_runButtonActionPerformed
 
     private void textEditorKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textEditorKeyTyped
-        // EMPTY
+
     }//GEN-LAST:event_textEditorKeyTyped
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
