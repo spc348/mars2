@@ -23,9 +23,9 @@ public class Store extends Operand<Byte> {
         source1Reg = this.registerNumberToRead;
         source2Reg = -1;
     }
-    
-    private short twosComplement(String number){
-       return (short) (Short.parseShort(number));
+
+    private short twosComplement(String number) {
+        return Short.parseShort(number);
     }
 
     public int getRegisterNumberToRead() {
@@ -61,10 +61,10 @@ public class Store extends Operand<Byte> {
         return true;
     }
 
-   @Override
-   public boolean loadsMemory() {
-      return false;
-   }
+    @Override
+    public boolean loadsMemory() {
+        return false;
+    }
 
     @Override
     public boolean isBounce() {

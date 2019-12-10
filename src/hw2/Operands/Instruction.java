@@ -184,8 +184,8 @@ public class Instruction {
     public int getDestination() {
         if (isWriteOperation) {
             Store sr = (Store) operand;
-            rsValue = sr.getRegisterNumberToRead();
-            String address = registerTable.getModel().getValueAt(destination, MainDisplay.REGISTER_TABLE_VALUE).toString();
+            rsValue = getDestReg();
+            String address = registerTable.getModel().getValueAt(sr.getRegisterNumberToRead(), MainDisplay.REGISTER_TABLE_VALUE).toString();
             int parsedAddress = Integer.parseInt(address);
             parsedAddress += sr.getOffset();
             setImmediateAddress(parsedAddress);
@@ -201,7 +201,7 @@ public class Instruction {
             } else {
                 Store sr = (Store) operand;
                 rsValue = sr.getRegisterNumberToRead();
-                String rawMemory = registerTable.getModel().getValueAt(sr.getRegisterNumberToRead(), MainDisplay.REGISTER_TABLE_VALUE).toString();
+                String rawMemory = registerTable.getModel().getValueAt(destination, MainDisplay.REGISTER_TABLE_VALUE).toString();
                 result = Integer.parseInt(rawMemory);
             }
             return result;

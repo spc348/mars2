@@ -594,7 +594,7 @@ public class MainDisplay extends javax.swing.JFrame {
                         if (checkCanAdvance(inst) && writing < 1) {
                             inst.setStage(PIPELINE_STAGE.W);
                             if (inst.getIsWriteOperation()) {
-                                int address = inst.getDestination() / 4;
+                                int address = (int)inst.getDestination() / 4;
                                 int offset = 0;
                                 while (address >= 0) {
                                     memoryTable.getModel().setValueAt(inst.getResult(), address, MEMORY_TABLE_VALUE + offset);
