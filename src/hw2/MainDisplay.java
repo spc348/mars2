@@ -5,6 +5,7 @@
  */
 package hw2;
 
+import hw2.Operands.INSTRUCTION_TYPE;
 import hw2.Operands.Instruction;
 import hw2.Operands.PIPELINE_STAGE;
 import java.util.ArrayList;
@@ -20,120 +21,122 @@ import javax.swing.table.TableModel;
  */
 public class MainDisplay extends javax.swing.JFrame {
 
-   private String instructionRaw = new String();
-   private String[] instructionLines = new String[300];
-   private final ArrayList<Instruction> instructions = new ArrayList<>();
-   private int instructionIndex;
-   public static final int REGISTER_TABLE_VALUE = 2;
-   public static final int MEMORY_TABLE_VALUE = 1;
-   private final String[][] memoryModelTable = new String[128][9];
-   private final TableModel memoryModel;
-   public final static String[] REGISTER_NAMES
-           = {"$zero", "$at", "$v0", "$v1",
-              "$a0", "$a1", "$a2", "$a3", "$t0",
-              "$t1", "$t2", "$t3", "$t4", "$t5",
-              "$t6", "$t7", "$s0", "$s1", "$s2",
-              "$s3", "$s4", "$s5", "$s6",
-              "$k0", "$k1", "$gp", "$sp",
-              "$fp", "$ra", "pc", "hi", "lo"};
-   public final static String[] REGISTER_VALUES = new String[REGISTER_NAMES.length];
+    private String instructionRaw = new String();
+    private String[] instructionLines = new String[300];
+    private final ArrayList<Instruction> instructions = new ArrayList<>();
+    private int instructionIndex;
+    public static final int REGISTER_TABLE_VALUE = 2;
+    public static final int MEMORY_TABLE_VALUE = 1;
+    private final String[][] memoryModelTable = new String[128][9];
+    private final TableModel memoryModel;
+    public final static String[] REGISTER_NAMES
+            = {"$zero", "$at", "$v0", "$v1",
+                "$a0", "$a1", "$a2", "$a3", "$t0",
+                "$t1", "$t2", "$t3", "$t4", "$t5",
+                "$t6", "$t7", "$s0", "$s1", "$s2",
+                "$s3", "$s4", "$s5", "$s6",
+                "$k0", "$k1", "$gp", "$sp",
+                "$fp", "$ra", "pc", "hi", "lo"};
+    public final static String[] REGISTER_VALUES = new String[REGISTER_NAMES.length];
 
-   public final int EditPage = 0;
-   public final int OpcodePage = 1;
+    public final int EditPage = 0;
+    public final int OpcodePage = 1;
 
-   public int fetching = 0;
-   public int decoding = 0;
-   public int executing = 0;
-   public int memorizing = 0;
-   public int writing = 0;
+    public int fetching = 0;
+    public int decoding = 0;
+    public int executing = 0;
+    public int memorizing = 0;
+    public int writing = 0;
 
-   private int fastMode = 0;
-   private final int FASTMODE_ENABLED = 1;
-   private final int FASTMODE_DISABLED = 0;
-   private int step = 0;
+    private int fastMode = 0;
+    private final int FASTMODE_ENABLED = 1;
+    private final int FASTMODE_DISABLED = 0;
+    private int step = 0;
 
-   private final int DESTINATION = 0;
-   private final int SOURCE = -1;
-   private final int SOURCE1 = 1;
-   private final int SOURCE2 = 2;
+    private final int DESTINATION = 0;
+    private final int SOURCE = -1;
+    private final int SOURCE1 = 1;
+    private final int SOURCE2 = 2;
 
-   public HashMap<Instruction, RegisterInfo> registersInUse = new HashMap<>();
+    private HashMap<Instruction, RegisterInfo> registersInUse = new HashMap<>();
 
-   /**
-    * Creates new form MainDisplay
-    */
-   public MainDisplay() {
-      memoryModel = CreateMemoryModel();
-      initComponents();
-      initModels();
-      stepOneButton.setEnabled(false);
-      runButton.setEnabled(false);
+    /**
+     * Creates new form MainDisplay
+     */
+    public MainDisplay() {
+        memoryModel = CreateMemoryModel();
+        initComponents();
+        initModels();
+        stepOneButton.setEnabled(false);
+        runButton.setEnabled(false);
 
-      for (int i = 0; i < REGISTER_VALUES.length; i++) {
-         REGISTER_VALUES[i] = Integer.toBinaryString(i);
-      }
-   }
+        for (int i = 0; i < REGISTER_VALUES.length; i++) {
+            REGISTER_VALUES[i] = Integer.toBinaryString(i);
+        }
+    }
 
-   private class RegisterInfo {
+    private class RegisterInfo {
 
-      private int registerNumber;
-      private int registerUse;
-      private Instruction inst;
+        private final int registerNumber;
+        private final int registerUse;
+        private final Instruction inst;
 
-      public RegisterInfo(int registerNumber, int registerUse, Instruction inst) {
-         this.registerNumber = registerNumber;
-         this.registerUse = registerUse;
-         this.inst = inst;
-      }
+        public RegisterInfo(int registerNumber, int registerUse, Instruction inst) {
+            this.registerNumber = registerNumber;
+            this.registerUse = registerUse;
+            this.inst = inst;
+        }
 
-      public Instruction getInstruction() {
-         return inst;
-      }
+        public Instruction getInstruction() {
+            return inst;
+        }
 
-      public int getRegisterNumber() {
-         return registerNumber;
-      }
+        public int getRegisterNumber() {
+            return registerNumber;
+        }
 
-      public int getRegisterUse() {
-         return registerUse;
-      }
+        public int getRegisterUse() {
+            return registerUse;
+        }
 
-      @Override
-      public int hashCode() {
-         int hash = 7;
-         return hash;
-      }
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            return hash;
+        }
 
-      @Override
-      public boolean equals(Object obj) {
-         if (this == obj) {
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final RegisterInfo other = (RegisterInfo) obj;
+            if (this.registerNumber != other.registerNumber) {
+                return false;
+            }
+            if (this.registerUse != other.registerUse) {
+                return false;
+            }
+            if (!Objects.equals(this.inst, other.inst)) {
+                return false;
+            }
             return true;
-         }
-         if (obj == null) {
-            return false;
-         }
-         if (getClass() != obj.getClass()) {
-            return false;
-         }
-         final RegisterInfo other = (RegisterInfo) obj;
-         if (this.registerNumber != other.registerNumber) {
-            return false;
-         }
-         if (this.registerUse != other.registerUse) {
-            return false;
-         }
-         if (!Objects.equals(this.inst, other.inst)) {
-            return false;
-         }
-         return true;
-      }
+        }
 
-   }
+    }
 
-   /**
-    * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this method is always regenerated by the Form Editor.
-    */
-   @SuppressWarnings("unchecked")
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -194,7 +197,7 @@ public class MainDisplay extends javax.swing.JFrame {
 
         textEditor.setColumns(20);
         textEditor.setRows(5);
-        textEditor.setText("add $t0 1 9\nadd $t0 0 16\naddr $t2 $t1 $t0\nsubr $t3 $t2 $t1");
+        textEditor.setText("loadb $t0 100\nstor $t0 0($t0)");
         textEditor.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 textEditorKeyTyped(evt);
@@ -416,55 +419,55 @@ public class MainDisplay extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void compileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compileButtonActionPerformed
-       Clear();
-       instructionRaw = textEditor.getText();
-       instructionLines = instructionRaw.split("\n");
-       for (int i = 0; i < instructionLines.length; i++) {
-          Instruction inst = new Instruction(instructionLines[i], registerBuffer, memoryTable, pipeline);
-          instructions.add(inst);
-          codeModel.getModel().setValueAt(inst.getInstructionString(), i, 0);
-          pipeline.getModel().setValueAt(inst.getRawInstruction(), i, 0);
-       }
-       if (instructions.size() > 0) {
-          stepOneButton.setEnabled(true);
-          runButton.setEnabled(true);
-       }
-       jTabbedPane2.setSelectedIndex(OpcodePage);
+        Clear();
+        instructionRaw = textEditor.getText();
+        instructionLines = instructionRaw.split("\n");
+        for (int i = 0; i < instructionLines.length; i++) {
+            Instruction inst = new Instruction(instructionLines[i], registerBuffer, memoryTable, pipeline);
+            instructions.add(inst);
+            codeModel.getModel().setValueAt(inst.getInstructionString(), i, 0);
+            pipeline.getModel().setValueAt(inst.getRawInstruction(), i, 0);
+        }
+        if (instructions.size() > 0) {
+            stepOneButton.setEnabled(true);
+            runButton.setEnabled(true);
+        }
+        jTabbedPane2.setSelectedIndex(OpcodePage);
     }//GEN-LAST:event_compileButtonActionPerformed
 
-   private void Clear() {
-      step = 0;
-      registersInUse.clear();
-      instructionIndex = 0;
-      fetching = 0;
-      decoding = 0;
-      executing = 0;
-      memorizing = 0;
-      writing = 0;
-      instructions.clear();
-      fastMode = FASTMODE_DISABLED;
-      forwardingButton.setText("No Forwarding");
-      for (int i = 0; i < registerBuffer.getModel().getRowCount(); i++) {
-         registerBuffer.getModel().setValueAt("0", i, REGISTER_TABLE_VALUE);
-      }
-      for (int i = 0; i < memoryTable.getModel().getRowCount(); i++) {
-         for (int j = 1; j < memoryTable.getModel().getColumnCount(); j++) {
-            memoryTable.getModel().setValueAt("0", i, j);
-         }
-      }
-      for (int i = 0; i < codeModel.getModel().getRowCount(); i++) {
-         codeModel.getModel().setValueAt("", i, 0);
-      }
-      for (int i = 0; i < pipeline.getRowCount(); i++) {
-         for (int j = 0; j < pipeline.getColumnCount(); j++) {
-            pipeline.getModel().setValueAt("", i, j);
-         }
-      }
-      log.setText("");
-   }
+    private void Clear() {
+        step = 0;
+        registersInUse.clear();
+        instructionIndex = 0;
+        fetching = 0;
+        decoding = 0;
+        executing = 0;
+        memorizing = 0;
+        writing = 0;
+        instructions.clear();
+        fastMode = FASTMODE_DISABLED;
+        forwardingButton.setText("No Forwarding");
+        for (int i = 0; i < registerBuffer.getModel().getRowCount(); i++) {
+            registerBuffer.getModel().setValueAt("0", i, REGISTER_TABLE_VALUE);
+        }
+        for (int i = 0; i < memoryTable.getModel().getRowCount(); i++) {
+            for (int j = 1; j < memoryTable.getModel().getColumnCount(); j++) {
+                memoryTable.getModel().setValueAt("0", i, j);
+            }
+        }
+        for (int i = 0; i < codeModel.getModel().getRowCount(); i++) {
+            codeModel.getModel().setValueAt("", i, 0);
+        }
+        for (int i = 0; i < pipeline.getRowCount(); i++) {
+            for (int j = 0; j < pipeline.getColumnCount(); j++) {
+                pipeline.getModel().setValueAt("", i, j);
+            }
+        }
+        log.setText("");
+    }
 
     private void stepOneButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_stepOneButtonMouseClicked
-       // TODO add your handling code here:
+        // TODO add your handling code here:
     }//GEN-LAST:event_stepOneButtonMouseClicked
 
     private void stepOneButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stepOneButtonActionPerformed
@@ -502,273 +505,289 @@ public class MainDisplay extends javax.swing.JFrame {
 //                runButton.setEnabled(false);
 //            }
 //        }
-       step += 1;
-       for (instructionIndex = 0; instructionIndex < instructions.size(); instructionIndex++) {
-          Instruction inst = instructions.get(instructionIndex);
-          inst.setPcRow(instructionIndex);
-          if (null == inst.getStage()) {
-             if (fetching < 1) {
-                inst.setStage(PIPELINE_STAGE.F);
-                advance(inst);
-                fetching += 1;
-             } else {
-                if (inst.getStage() != null) {
-                   log(inst, inst.getStage());
+        step += 1;
+        for (instructionIndex = 0; instructionIndex < instructions.size(); instructionIndex++) {
+            Instruction inst = instructions.get(instructionIndex);
+            inst.setPcRow(instructionIndex);
+            if (null == inst.getStage()) {
+                if (fetching < 1) {
+                    inst.setStage(PIPELINE_STAGE.F);
+                    advance(inst);
+                    fetching += 1;
+                } else {
+                    if (inst.getStage() != null) {
+                        log(inst, inst.getStage());
+                    }
+                    stall(inst);
                 }
-                stall(inst);
-             }
-          } else {
-             switch (inst.getStage()) {
-                case F:
-                   if (checkCanAdvance(inst) && decoding < 1) {
-                      inst.setStage(PIPELINE_STAGE.D);
-                      if (fastMode == FASTMODE_DISABLED) {
-                         reserveSourceRegisters(inst);
-                         reserveDestination(inst);
-                      }
-                      fetching -= 1;
-                      decoding += 1;
-                      advance(inst);
-                   } else {
-                      if (inst.getStage() != null) {
-                         log(inst, inst.getStage());
-                      }
-                      stall(inst);
-                   }
-                   break;
-                case D:
-                   if (checkCanAdvance(inst) && executing < 1) {
-                      inst.setStage(PIPELINE_STAGE.E);
-                      reserveSourceRegisters(inst);
-                      if (fastMode == FASTMODE_DISABLED) {
-                         reserveDestination(inst);
-                      }
-                      registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
-                      decoding -= 1;
-                      executing += 1;
-                      advance(inst);
-                   } else {
-                      if (executing > 1) {
-                         if (inst.getStage() != null) {
-                            log(inst, inst.getStage());
-                         }
-                      }
-                      stall(inst);
-                   }
-                   break;
-                case E:
-                   if (checkCanAdvance(inst) && memorizing < 1) {
-                      if (fastMode == FASTMODE_DISABLED) {
-                         reserveSourceRegisters(inst);
-                         reserveDestination(inst);
-                      }
-                      inst.setStage(PIPELINE_STAGE.M);
-                      executing -= 1;
-                      memorizing += 1;
-                      advance(inst);
-                      if (fastMode == FASTMODE_ENABLED) {
-                         releaseSourceRegisters(inst);
-                      }
-                   } else {
-                      if (memorizing > 1) {
-                         if (inst.getStage() != null) {
-                            log(inst, inst.getStage());
-                         }
-                      }
-                      stall(inst);
-                   }
-                   break;
-                case M:
-                   if (checkCanAdvance(inst) && writing < 1) {
-                      inst.setStage(PIPELINE_STAGE.W);
-                      if (inst.getIsWriteOperation()) {
-                         memoryTable.getModel().setValueAt(inst.getResult(), inst.getDestination(), MEMORY_TABLE_VALUE);
-                      }
-                      if (fastMode == FASTMODE_ENABLED) {
-                         reserveDestination(inst);
-                      }
-                      memorizing -= 1;
-                      writing += 1;
-                      advance(inst);
-                   } else {
-                      if (writing > 1) {
-                         if (inst.getStage() != null) {
-                            log(inst, inst.getStage());
-                         }
-                      }
-                      stall(inst);
-                   }
-                   break;
-                case W:
-                   writing -= 1;
-                   releaseDestination(inst);
-                   releaseSourceRegisters(inst);
-                   releaseInstruction(inst);
-                   break;
-                default:
-                   break;
-             }
-          }
-       }
+            } else {
+                switch (inst.getStage()) {
+                    case F:
+                        if (checkCanAdvance(inst) && decoding < 1) {
+                            inst.setStage(PIPELINE_STAGE.D);
+                            if (fastMode == FASTMODE_DISABLED) {
+                                reserveSourceRegisters(inst);
+                                reserveDestination(inst);
+                            }
+                            fetching -= 1;
+                            decoding += 1;
+                            advance(inst);
+                        } else {
+                            if (inst.getStage() != null) {
+                                log(inst, inst.getStage());
+                            }
+                            stall(inst);
+                        }
+                        break;
+                    case D:
+                        if (checkCanAdvance(inst) && executing < 1) {
+                            inst.setStage(PIPELINE_STAGE.E);
+                            reserveSourceRegisters(inst);
+                            if (fastMode == FASTMODE_DISABLED) {
+                                reserveDestination(inst);
+                            }
+                            if (inst.getInstructionType() == INSTRUCTION_TYPE.R) {
+                                registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
+
+                            }
+                            decoding -= 1;
+                            executing += 1;
+                            advance(inst);
+                        } else {
+                            if (executing > 1) {
+                                if (inst.getStage() != null) {
+                                    log(inst, inst.getStage());
+                                }
+                            }
+                            stall(inst);
+                        }
+                        break;
+                    case E:
+                        if (checkCanAdvance(inst) && memorizing < 1) {
+                            if (fastMode == FASTMODE_DISABLED) {
+                                reserveSourceRegisters(inst);
+                                reserveDestination(inst);
+                            } else if (fastMode == FASTMODE_ENABLED) {
+                                releaseSourceRegisters(inst);
+                                if (inst.getInstructionType() == INSTRUCTION_TYPE.R) {
+                                    releaseDestination(inst);
+                                }
+                            }
+                            inst.setStage(PIPELINE_STAGE.M);
+                            if (inst.getInstructionType() == INSTRUCTION_TYPE.I && !inst.getIsWriteOperation()) {
+                                registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
+
+                            }
+                            executing -= 1;
+                            memorizing += 1;
+                            advance(inst);
+                        } else {
+                            if (memorizing > 1) {
+                                if (inst.getStage() != null) {
+                                    log(inst, inst.getStage());
+                                }
+                            }
+                            stall(inst);
+                        }
+                        break;
+                    case M:
+                        if (checkCanAdvance(inst) && writing < 1) {
+                            inst.setStage(PIPELINE_STAGE.W);
+                            if (inst.getIsWriteOperation()) {
+                                int address = inst.getDestination() / 4;
+                                int offset = 0;
+                                while (address >= 0) {
+                                    memoryTable.getModel().setValueAt(inst.getResult(), address, MEMORY_TABLE_VALUE + offset);
+                                    memoryTable.repaint();
+                                    address -= 1;
+                                    offset += 1;
+                                }
+                            }
+                            if (fastMode == FASTMODE_ENABLED && inst.getInstructionType() == INSTRUCTION_TYPE.I) {
+                                reserveDestination(inst);
+                            }
+                            memorizing -= 1;
+                            writing += 1;
+                            advance(inst);
+                        } else {
+                            if (writing > 1) {
+                                if (inst.getStage() != null) {
+                                    log(inst, inst.getStage());
+                                }
+                            }
+                            stall(inst);
+                        }
+                        break;
+                    case W:
+                        writing -= 1;
+                        releaseDestination(inst);
+                        releaseSourceRegisters(inst);
+                        releaseInstruction(inst);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
     }//GEN-LAST:event_stepOneButtonActionPerformed
 
-   private void releaseInstruction(Instruction inst) {
-      if (registersInUse.containsKey(inst)) {
-         registersInUse.remove(inst);
-      }
-   }
+    private void releaseInstruction(Instruction inst) {
+        if (registersInUse.containsKey(inst)) {
+            registersInUse.remove(inst);
+        }
+    }
 
-   private void reserveSourceRegisters(Instruction inst) {
-      if (inst.getSource1Reg() > 0) {
-         RegisterInfo r = new RegisterInfo(inst.getSource1Reg(), SOURCE, inst);
-         if (registersInUse.containsValue(r)) {
-            RegisterInfo other = compareInstruction(inst, inst.getSource1Reg(), r);
-            log("Existing value at " + inst.getSource1Reg());
-         }
-         registersInUse.put(inst, r);
-      }
-      if (inst.getSource2Reg() > 0) {
-         RegisterInfo r = new RegisterInfo(inst.getSource2Reg(), SOURCE, inst);
-         if (registersInUse.containsValue(r)) {
-            RegisterInfo other = compareInstruction(inst, inst.getSource2Reg(), r);
-            log("Existing value at " + inst.getSource2Reg());
-         }
-         registersInUse.put(inst, r);
-      }
-   }
-
-   private void reserveDestination(Instruction inst) {
-      if (inst.getDestReg() > 0) {
-         RegisterInfo r = new RegisterInfo(inst.getDestReg(), DESTINATION, inst);
-         if (registersInUse.containsValue(r)) {
-            RegisterInfo other = compareInstruction(inst, inst.getDestReg(), r);
-            log("Existing value at " + inst.getDestReg());
-         }
-         registersInUse.put(inst, r);
-      }
-   }
-
-   private void log(String str) {
-      log.setText(log.getText() + "\n" + str);
-   }
-
-   private void releaseDestination(Instruction inst) {
-      RegisterInfo r = new RegisterInfo(inst.getDestReg(), DESTINATION, inst);
-      if (registersInUse.containsValue(r)) {
-         registersInUse.values().remove(r);
-      }
-   }
-
-   private boolean checkCanAdvance(Instruction inst) {
-      boolean otherIsDest = false;
-      RegisterInfo other, r;
-      if (registersInUse.isEmpty()) {
-         return true;
-      }
-      r = new RegisterInfo(inst.getDestReg(), DESTINATION, inst);
-      boolean destRegBusy = false;
-      other = compareInstruction(inst, inst.getDestReg(), r);
-      if (other != null) {
-         destRegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
-         otherIsDest = other.getRegisterUse() == DESTINATION;
-         log(inst, DESTINATION);
-      }
-
-      r = new RegisterInfo(inst.getSource1Reg(), SOURCE, inst);
-      other = compareInstruction(inst, inst.getSource1Reg(), r);
-      boolean src1RegBusy = false;
-      if (other != null) {
-         src1RegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
-         otherIsDest = other.getRegisterUse() == DESTINATION;
-         log(inst, SOURCE1);
-      }
-
-      r = new RegisterInfo(inst.getSource2Reg(), SOURCE, inst);
-      boolean src2RegBusy = false;
-      other = compareInstruction(inst, inst.getSource2Reg(), r);
-      if (other != null) {
-         src2RegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
-         otherIsDest = other.getRegisterUse() == DESTINATION;
-         log(inst, SOURCE2);
-      }
-      return !destRegBusy && !src1RegBusy && !src2RegBusy;
-   }
-
-   private void log(Instruction inst, int sourceType) {
-      switch (sourceType) {
-         case DESTINATION:
-            log.setText(log.getText() + "\n" + step + " [" + inst.getPcRow() + "]" + " Dest reg busy at " + inst.getDestReg());
-            break;
-         case SOURCE1:
-            log.setText(log.getText() + "\n" + step + " [" + inst.getPcRow() + "]" + " Src1 reg busy at " + inst.getSource1Reg());
-            break;
-         case SOURCE2:
-            log.setText(log.getText() + "\n" + step + " [" + inst.getPcRow() + "]" + " Src2 reg busy at " + inst.getSource2Reg());
-            break;
-         default:
-            break;
-      }
-   }
-
-   private void log(Instruction inst, PIPELINE_STAGE stage) {
-      log.setText(log.getText() + "\n" + step + " [" + inst.getPcRow() + "]" + " Structual hazard at " + stage);
-   }
-
-   private RegisterInfo compareInstruction(Instruction inst, int register, RegisterInfo info) {
-      RegisterInfo r = null;
-      for (Entry<Instruction, RegisterInfo> entry : registersInUse.entrySet()) {
-         if (entry.getValue().getRegisterNumber() == register) {
-            if (entry.getKey().equals(inst)) {
-               continue;
+    private void reserveSourceRegisters(Instruction inst) {
+        if (inst.getSource1Reg() > 0) {
+            RegisterInfo r = new RegisterInfo(inst.getSource1Reg(), SOURCE, inst);
+            if (registersInUse.containsValue(r)) {
+                RegisterInfo other = compareInstruction(inst, inst.getSource1Reg(), r);
+                log("Existing value at " + inst.getSource1Reg());
             }
-            r = entry.getValue();
-            break;
-         }
-      }
-      return r;
-   }
+            registersInUse.put(inst, r);
+        }
+        if (inst.getSource2Reg() > 0) {
+            RegisterInfo r = new RegisterInfo(inst.getSource2Reg(), SOURCE, inst);
+            if (registersInUse.containsValue(r)) {
+                RegisterInfo other = compareInstruction(inst, inst.getSource2Reg(), r);
+                log("Existing value at " + inst.getSource2Reg());
+            }
+            registersInUse.put(inst, r);
+        }
+    }
 
-   private void advance(Instruction inst) {
-      inst.incrementIndex();
-      pipeline.getModel().setValueAt(inst.getStage(), instructionIndex, inst.getPcIndex());
-      updatePC(instructionIndex, inst);
-   }
+    private void reserveDestination(Instruction inst) {
+        if (inst.getDestReg() > 0) {
+            RegisterInfo r = new RegisterInfo(inst.getDestReg(), DESTINATION, inst);
+            if (registersInUse.containsValue(r)) {
+                RegisterInfo other = compareInstruction(inst, inst.getDestReg(), r);
+                log("Existing value at " + inst.getDestReg());
+            }
+            registersInUse.put(inst, r);
+        }
+    }
 
-   private void stall(Instruction inst) {
-      inst.incrementIndex();
-      if (inst.getStage() != null) {
-         pipeline.getModel().setValueAt("s", instructionIndex, inst.getPcIndex());
-      }
-      updatePC(instructionIndex, inst);
-   }
+    private void log(String str) {
+        log.setText(log.getText() + "\n" + str);
+    }
+
+    private void releaseDestination(Instruction inst) {
+        RegisterInfo r = new RegisterInfo(inst.getDestReg(), DESTINATION, inst);
+        if (registersInUse.containsValue(r)) {
+            registersInUse.values().remove(r);
+        }
+    }
+
+    private boolean checkCanAdvance(Instruction inst) {
+        boolean otherIsDest = false;
+        RegisterInfo other, r;
+        if (registersInUse.isEmpty()) {
+            return true;
+        }
+        r = new RegisterInfo(inst.getDestReg(), DESTINATION, inst);
+        boolean destRegBusy = false;
+        other = compareInstruction(inst, inst.getDestReg(), r);
+        if (other != null) {
+            destRegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
+            otherIsDest = other.getRegisterUse() == DESTINATION;
+            log(inst, DESTINATION);
+        }
+
+        r = new RegisterInfo(inst.getSource1Reg(), SOURCE, inst);
+        other = compareInstruction(inst, inst.getSource1Reg(), r);
+        boolean src1RegBusy = false;
+        if (other != null) {
+            src1RegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
+            otherIsDest = other.getRegisterUse() == DESTINATION;
+            log(inst, SOURCE1);
+        }
+
+        r = new RegisterInfo(inst.getSource2Reg(), SOURCE, inst);
+        boolean src2RegBusy = false;
+        other = compareInstruction(inst, inst.getSource2Reg(), r);
+        if (other != null) {
+            src2RegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
+            otherIsDest = other.getRegisterUse() == DESTINATION;
+            log(inst, SOURCE2);
+        }
+        return !destRegBusy && !src1RegBusy && !src2RegBusy;
+    }
+
+    private void log(Instruction inst, int sourceType) {
+        switch (sourceType) {
+            case DESTINATION:
+                log.setText(log.getText() + "\n" + step + " [" + inst.getPcRow() + "]" + " Dest reg busy at " + inst.getDestReg());
+                break;
+            case SOURCE1:
+                log.setText(log.getText() + "\n" + step + " [" + inst.getPcRow() + "]" + " Src1 reg busy at " + inst.getSource1Reg());
+                break;
+            case SOURCE2:
+                log.setText(log.getText() + "\n" + step + " [" + inst.getPcRow() + "]" + " Src2 reg busy at " + inst.getSource2Reg());
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void log(Instruction inst, PIPELINE_STAGE stage) {
+        log.setText(log.getText() + "\n" + step + " [" + inst.getPcRow() + "]" + " Structual hazard at " + stage);
+    }
+
+    private RegisterInfo compareInstruction(Instruction inst, int register, RegisterInfo info) {
+        RegisterInfo r = null;
+        for (Entry<Instruction, RegisterInfo> entry : registersInUse.entrySet()) {
+            if (entry.getValue().getRegisterNumber() == register) {
+                if (entry.getKey().equals(inst)) {
+                    continue;
+                }
+                r = entry.getValue();
+                break;
+            }
+        }
+        return r;
+    }
+
+    private void advance(Instruction inst) {
+        inst.incrementIndex();
+        pipeline.getModel().setValueAt(inst.getStage(), instructionIndex, inst.getPcIndex());
+        updatePC(instructionIndex, inst);
+    }
+
+    private void stall(Instruction inst) {
+        inst.incrementIndex();
+        if (inst.getStage() != null) {
+            pipeline.getModel().setValueAt("s", instructionIndex, inst.getPcIndex());
+        }
+        updatePC(instructionIndex, inst);
+    }
 
     private void runButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runButtonActionPerformed
-       while (instructionIndex < instructions.size()) {
-          Instruction inst = instructions.get(instructionIndex);
-          if (inst.getIsWriteOperation()) {
-             memoryTable.getModel().setValueAt(inst.getResult(),
-                     inst.getDestination(), MEMORY_TABLE_VALUE);
-          } else {
-             registerBuffer.getModel().setValueAt(inst.getResult(),
-                     inst.getDestination(), REGISTER_TABLE_VALUE);
-          }
-          if (inst.isBounceInstruction()) {
-             updatePC(instructionIndex, inst);
-             int oldIndex = instructionIndex;
-             instructionIndex = inst.getBounceLocation();
-             if (oldIndex > instructionIndex) {
-                for (int i = instructionIndex; i <= oldIndex; i++) {
-                   String old = codeModel.getModel().getValueAt(i, 0).toString();
-                   codeModel.getModel().setValueAt(old.replace("> ", ""), i, 0);
+        while (instructionIndex < instructions.size()) {
+            Instruction inst = instructions.get(instructionIndex);
+            if (inst.getIsWriteOperation()) {
+                memoryTable.getModel().setValueAt(inst.getResult(),
+                        inst.getDestination(), MEMORY_TABLE_VALUE);
+            } else {
+                registerBuffer.getModel().setValueAt(inst.getResult(),
+                        inst.getDestination(), REGISTER_TABLE_VALUE);
+            }
+            if (inst.isBounceInstruction()) {
+                updatePC(instructionIndex, inst);
+                int oldIndex = instructionIndex;
+                instructionIndex = inst.getBounceLocation();
+                if (oldIndex > instructionIndex) {
+                    for (int i = instructionIndex; i <= oldIndex; i++) {
+                        String old = codeModel.getModel().getValueAt(i, 0).toString();
+                        codeModel.getModel().setValueAt(old.replace("> ", ""), i, 0);
+                    }
                 }
-             }
-          } else if (instructionIndex + 1 < instructions.size()) {
-             updatePC(instructionIndex, inst);
-             instructionIndex++;
-          }
-       }
-       stepOneButton.setEnabled(false);
-       runButton.setEnabled(false);
+            } else if (instructionIndex + 1 < instructions.size()) {
+                updatePC(instructionIndex, inst);
+                instructionIndex++;
+            }
+        }
+        stepOneButton.setEnabled(false);
+        runButton.setEnabled(false);
     }//GEN-LAST:event_runButtonActionPerformed
 
     private void textEditorKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textEditorKeyTyped
@@ -776,62 +795,62 @@ public class MainDisplay extends javax.swing.JFrame {
     }//GEN-LAST:event_textEditorKeyTyped
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
-       Clear();
-       jTabbedPane2.setSelectedIndex(EditPage);
+        Clear();
+        jTabbedPane2.setSelectedIndex(EditPage);
     }//GEN-LAST:event_clearButtonActionPerformed
 
     private void forwardingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_forwardingButtonActionPerformed
-       if (fastMode == FASTMODE_ENABLED) {
-          fastMode = FASTMODE_DISABLED;
-          forwardingButton.setText("No Forwarding");
-       } else if (fastMode == FASTMODE_DISABLED) {
-          fastMode = FASTMODE_ENABLED;
-          forwardingButton.setText("Forwarding On");
-       }
+        if (fastMode == FASTMODE_ENABLED) {
+            fastMode = FASTMODE_DISABLED;
+            forwardingButton.setText("No Forwarding");
+        } else if (fastMode == FASTMODE_DISABLED) {
+            fastMode = FASTMODE_ENABLED;
+            forwardingButton.setText("Forwarding On");
+        }
     }//GEN-LAST:event_forwardingButtonActionPerformed
 
-   /**
-    * @param args the command line arguments
-    */
-   public static void main(String args[]) {
-      /* Set the Nimbus look and feel */
-      //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-      /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-       */
-      try {
-         for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-            if ("GTK+".equals(info.getName())) {
-               javax.swing.UIManager.setLookAndFeel(info.getClassName());
-               break;
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("GTK+".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
 
+                }
             }
-         }
-      } catch (ClassNotFoundException ex) {
-         java.util.logging.Logger.getLogger(MainDisplay.class
-                 .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(MainDisplay.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
 
-      } catch (InstantiationException ex) {
-         java.util.logging.Logger.getLogger(MainDisplay.class
-                 .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(MainDisplay.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
 
-      } catch (IllegalAccessException ex) {
-         java.util.logging.Logger.getLogger(MainDisplay.class
-                 .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(MainDisplay.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
 
-      } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-         java.util.logging.Logger.getLogger(MainDisplay.class
-                 .getName()).log(java.util.logging.Level.SEVERE, null, ex);
-      }
-      //</editor-fold>
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(MainDisplay.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
 
-      /* Create and display the form */
-      java.awt.EventQueue.invokeLater(new Runnable() {
-         public void run() {
-            new MainDisplay().setVisible(true);
-         }
-      });
-   }
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new MainDisplay().setVisible(true);
+            }
+        });
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton clearButton;
@@ -855,94 +874,91 @@ public class MainDisplay extends javax.swing.JFrame {
     private javax.swing.JTextArea textEditor;
     // End of variables declaration//GEN-END:variables
 
-   private TableModel CreateMemoryModel() {
-      TableModel model = new TableModel() {
-         @Override
-         public int getRowCount() {
+    private TableModel CreateMemoryModel() {
+        TableModel model = new TableModel() {
+            @Override
+            public int getRowCount() {
+                return memoryModelTable.length;
+            }
 
-            return memoryModelTable.length;
-         }
+            @Override
+            public int getColumnCount() {
+                return memoryModelTable[0].length;
+            }
 
-         @Override
-         public int getColumnCount() {
-            return memoryModelTable[0].length;
-         }
+            String[] colNames = {"Address", "Value(+0)", "Value(+4)", "Value(+8)",
+                "Value(+12)", "Value(+16)", "Value(+20)", "Value(+24)", "Value(+30)"};
 
-         String[] colNames = {"Address", "Value(+0)", "Value(+4)", "Value(+8)",
-            "Value(+12)", "Value(+16)", "Value(+20)", "Value(+24)", "Value(+30)"};
+            @Override
+            public String getColumnName(int arg0) {
+                return colNames[arg0];
+            }
 
-         @Override
-         public String getColumnName(int arg0) {
-            return colNames[arg0];
-         }
+            @Override
+            public Class<?> getColumnClass(int arg0) {
+                return String.class;
+            }
 
-         @Override
-         public Class<?> getColumnClass(int arg0) {
-            return String.class;
-         }
+            @Override
+            public boolean isCellEditable(int arg0, int arg1) {
+                return false;
+            }
 
-         @Override
-         public boolean isCellEditable(int arg0, int arg1) {
-            return false;
-         }
+            @Override
+            public Object getValueAt(int arg0, int arg1) {
+                return memoryModelTable[arg0][arg1];
+            }
 
-         @Override
-         public Object getValueAt(int arg0, int arg1) {
-            return memoryModelTable[arg0][arg1];
-         }
+            @Override
+            public void setValueAt(Object arg0, int arg1, int arg2) {
+                memoryModelTable[arg1][arg2] = arg0.toString();
+            }
 
-         @Override
-         public void setValueAt(Object arg0, int arg1, int arg2) {
-            memoryModelTable[arg1][arg2] = arg0.toString();
-         }
+            @Override
+            public void addTableModelListener(TableModelListener arg0) {
+                // Empty
+            }
 
-         @Override
-         public void addTableModelListener(TableModelListener arg0) {
-            // Empty
-         }
+            @Override
+            public void removeTableModelListener(TableModelListener arg0) {
+                // Empty
+            }
+        };
+        return model;
+    }
 
-         @Override
-         public void removeTableModelListener(TableModelListener arg0) {
-            // Empty
-         }
-      };
-      return model;
-   }
+    private void initModels() {
+        fastMode = FASTMODE_DISABLED;
+        forwardingButton.setText("No Forwarding");
+        for (int i = 0; i < registerBuffer.getModel().getRowCount(); i++) {
+            registerBuffer.getModel().setValueAt(String.valueOf(i), i, REGISTER_TABLE_VALUE - 1);
+            registerBuffer.getModel().setValueAt(REGISTER_NAMES[i], i, REGISTER_TABLE_VALUE - 2);
+            registerBuffer.getModel().setValueAt("", i, REGISTER_TABLE_VALUE);
+        }
+        for (int i = 0, memAddress = 0; i < memoryTable.getModel().getRowCount(); i++, memAddress += 4) {
 
-   private void initModels() {
-      fastMode = FASTMODE_DISABLED;
-      forwardingButton.setText("No Forwarding");
-      for (int i = 0; i < registerBuffer.getModel().getRowCount(); i++) {
-         registerBuffer.getModel().setValueAt(String.valueOf(i), i, REGISTER_TABLE_VALUE - 1);
-         registerBuffer.getModel().setValueAt(REGISTER_NAMES[i], i, REGISTER_TABLE_VALUE - 2);
-         registerBuffer.getModel().setValueAt("", i, REGISTER_TABLE_VALUE);
-      }
-      int memAddress = 0;
-      for (int i = 0; i < memoryTable.getModel().getRowCount(); i++) {
+            memoryTable.getModel().setValueAt(String.format("0x%1$08x", memAddress), i, MEMORY_TABLE_VALUE - 1);
+        }
+        for (int i = 0; i < pipeline.getRowCount(); i++) {
+            for (int j = 0; j < pipeline.getColumnCount(); j++) {
+                pipeline.getModel().setValueAt("", i, j);
 
-         memoryTable.getModel().setValueAt(String.format("0x%1$08x", memAddress), i, MEMORY_TABLE_VALUE - 1);
-         memAddress += 4;
-      }
-      for (int i = 0; i < pipeline.getRowCount(); i++) {
-         for (int j = 0; j < pipeline.getColumnCount(); j++) {
-            pipeline.getModel().setValueAt("", i, j);
+            }
+        }
+    }
 
-         }
-      }
-   }
-
-   private void updatePC(int index, Instruction inst) {
-      registerBuffer.getModel().setValueAt(index, 29, REGISTER_TABLE_VALUE);
+    private void updatePC(int index, Instruction inst) {
+        registerBuffer.getModel().setValueAt(index, 29, REGISTER_TABLE_VALUE);
 //        String old = codeModel.getModel().getValueAt(index, 0).toString();
 //        codeModel.getModel().setValueAt("> " + old, index, 0);
-   }
+    }
 
-   private void releaseSourceRegisters(Instruction inst) {
-      if (registersInUse.containsValue(inst.getSource1Reg())) {
-         registersInUse.values().remove(inst.getSource1Reg());
-      }
-      if (registersInUse.containsValue(inst.getSource2Reg())) {
-         registersInUse.values().remove(inst.getSource2Reg());
-      }
-   }
+    private void releaseSourceRegisters(Instruction inst) {
+        if (registersInUse.containsValue(inst.getSource1Reg())) {
+            registersInUse.values().remove(inst.getSource1Reg());
+        }
+        if (registersInUse.containsValue(inst.getSource2Reg())) {
+            registersInUse.values().remove(inst.getSource2Reg());
+        }
+    }
 }

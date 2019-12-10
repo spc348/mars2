@@ -20,7 +20,7 @@ public class Store extends Operand<Byte> {
         }
         this.registerNumberToRead = new RegisterLookup(parts[1]).getRegisterNumber();
         this.offset = twosComplement(parts[0]);
-        source1Reg = new RegisterLookup(parts[1]).getRegisterNumber();
+        source1Reg = this.registerNumberToRead;
         source2Reg = -1;
     }
     
@@ -48,7 +48,7 @@ public class Store extends Operand<Byte> {
 
     @Override
     public boolean usesConstants() {
-        return true;
+        return false;
     }
 
     @Override
