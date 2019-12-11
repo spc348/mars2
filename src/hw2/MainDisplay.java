@@ -21,6 +21,8 @@ import javax.swing.table.TableModel;
  */
 public class MainDisplay extends javax.swing.JFrame {
 
+    private static final long serialVersionUID = 1L;
+
     private String instructionRaw = new String();
     private String[] instructionLines = new String[300];
     private final ArrayList<Instruction> instructions = new ArrayList<>();
@@ -39,14 +41,14 @@ public class MainDisplay extends javax.swing.JFrame {
                 "$fp", "$ra", "pc", "hi", "lo"};
     public final static String[] REGISTER_VALUES = new String[REGISTER_NAMES.length];
 
-    public final int EditPage = 0;
-    public final int OpcodePage = 1;
+    private final int EditPage = 0;
+    private final int OpcodePage = 1;
 
-    public int fetching = 0;
-    public int decoding = 0;
-    public int executing = 0;
-    public int memorizing = 0;
-    public int writing = 0;
+    private int fetching = 0;
+    private int decoding = 0;
+    private int executing = 0;
+    private int memorizing = 0;
+    private int writing = 0;
 
     private int fastMode = 0;
     private final int FASTMODE_ENABLED = 1;
@@ -58,7 +60,8 @@ public class MainDisplay extends javax.swing.JFrame {
     private final int SOURCE1 = 1;
     private final int SOURCE2 = 2;
 
-    private HashMap<Instruction, RegisterInfo> registersInUse = new HashMap<>();
+    private final HashMap<Instruction, RegisterInfo> registersInUse = new HashMap<>();
+    private final HashMap<Instruction, Integer> addressesInUse = new HashMap<>();
 
     /**
      * Creates new form MainDisplay
@@ -73,6 +76,12 @@ public class MainDisplay extends javax.swing.JFrame {
         for (int i = 0; i < REGISTER_VALUES.length; i++) {
             REGISTER_VALUES[i] = Integer.toBinaryString(i);
         }
+    }
+
+    private void staticHazardCheck(HashMap<Instruction, Integer[]> tempInstructions) {
+        int loadCommands = 0;
+        int storeCommands = 0;
+
     }
 
     private class RegisterInfo {
@@ -117,13 +126,13 @@ public class MainDisplay extends javax.swing.JFrame {
                 return false;
             }
             final RegisterInfo other = (RegisterInfo) obj;
-            if (this.registerNumber != other.registerNumber) {
+            if (this.registerNumber != other.getRegisterNumber()) {
                 return false;
             }
-            if (this.registerUse != other.registerUse) {
+            if (this.registerUse != other.getRegisterUse()) {
                 return false;
             }
-            if (!Objects.equals(this.inst, other.inst)) {
+            if (!Objects.equals(this.inst, other.getInstruction())) {
                 return false;
             }
             return true;
@@ -197,7 +206,7 @@ public class MainDisplay extends javax.swing.JFrame {
 
         textEditor.setColumns(20);
         textEditor.setRows(5);
-        textEditor.setText("loadb $t0 100\nstor $t0 0($t0)");
+        textEditor.setText("loadb $t0 100\nstor $t0 0($t0)\nloadm $t3 0($t0)");
         textEditor.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 textEditorKeyTyped(evt);
@@ -422,12 +431,19 @@ public class MainDisplay extends javax.swing.JFrame {
         Clear();
         instructionRaw = textEditor.getText();
         instructionLines = instructionRaw.split("\n");
+        HashMap<Instruction, Integer[]> tempInstructions = new HashMap<>();
         for (int i = 0; i < instructionLines.length; i++) {
             Instruction inst = new Instruction(instructionLines[i], registerBuffer, memoryTable, pipeline);
             instructions.add(inst);
             codeModel.getModel().setValueAt(inst.getInstructionString(), i, 0);
             pipeline.getModel().setValueAt(inst.getRawInstruction(), i, 0);
+            Integer[] registers = new Integer[3];
+            registers[0] = inst.getDestReg();
+            registers[1] = inst.getSource1Reg();
+            registers[2] = inst.getSource2Reg();
+            tempInstructions.put(inst, registers);
         }
+        staticHazardCheck(tempInstructions);
         if (instructions.size() > 0) {
             stepOneButton.setEnabled(true);
             runButton.setEnabled(true);
@@ -438,6 +454,7 @@ public class MainDisplay extends javax.swing.JFrame {
     private void Clear() {
         step = 0;
         registersInUse.clear();
+        addressesInUse.clear();
         instructionIndex = 0;
         fetching = 0;
         decoding = 0;
@@ -471,40 +488,6 @@ public class MainDisplay extends javax.swing.JFrame {
     }//GEN-LAST:event_stepOneButtonMouseClicked
 
     private void stepOneButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stepOneButtonActionPerformed
-//        if (instructionIndex < instructions.size()) {
-//            Instruction inst = instructions.get(instructionIndex);
-//            inst.setpcIndex(instructionIndex);
-//            initial_pc_row++;
-//            inst.setpcRow(initial_pc_row);
-//            inst.incrementStage();
-//            pipeline.getModel().setValueAt(inst.getStage(), inst.getPcRow(), inst.getpcindex());
-//            if (inst.getIsWriteOperation()) {
-//                memoryTable.getModel().setValueAt(inst.getResult(),
-//                        inst.getDestination(), MEMORY_TABLE_VALUE);
-//            } else {
-//                registerBuffer.getModel().setValueAt(inst.getResult(),
-//                        inst.getDestination(), REGISTER_TABLE_VALUE);
-//            }
-//            if (inst.isBounceInstruction()) {
-//                updatePC(instructionIndex, inst);
-//                int oldIndex = instructionIndex;
-//                instructionIndex = inst.getBounceLocation();
-//                if (oldIndex > instructionIndex) {
-//                    for (int i = instructionIndex; i <= oldIndex; i++) {
-//                        String old = codeModel.getModel().getValueAt(i, 0).toString();
-//                        String replaced = old.replace("> ", "");
-//                        codeModel.getModel().setValueAt(replaced, i, 0);
-//                    }
-//                }
-//            } else if (instructionIndex + 1 < instructions.size()) {
-//                instructionIndex++;
-//                updatePC(instructionIndex - 1, inst);
-//            } else {
-//                updatePC(instructionIndex, inst);
-//                stepOneButton.setEnabled(false);
-//                runButton.setEnabled(false);
-//            }
-//        }
         step += 1;
         for (instructionIndex = 0; instructionIndex < instructions.size(); instructionIndex++) {
             Instruction inst = instructions.get(instructionIndex);
@@ -545,6 +528,9 @@ public class MainDisplay extends javax.swing.JFrame {
                             reserveSourceRegisters(inst);
                             if (fastMode == FASTMODE_DISABLED) {
                                 reserveDestination(inst);
+                                if (inst.getMemoryAddressUsed() != 0) {
+                                    reserveMemoryAddress(inst);
+                                }
                             }
                             if (inst.getInstructionType() == INSTRUCTION_TYPE.R) {
                                 registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
@@ -576,7 +562,7 @@ public class MainDisplay extends javax.swing.JFrame {
                             inst.setStage(PIPELINE_STAGE.M);
                             if (inst.getInstructionType() == INSTRUCTION_TYPE.I && !inst.getIsWriteOperation()) {
                                 registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
-
+                                releaseMemoryAddress(inst);
                             }
                             executing -= 1;
                             memorizing += 1;
@@ -594,7 +580,7 @@ public class MainDisplay extends javax.swing.JFrame {
                         if (checkCanAdvance(inst) && writing < 1) {
                             inst.setStage(PIPELINE_STAGE.W);
                             if (inst.getIsWriteOperation()) {
-                                int address = (int)inst.getDestination() / 4;
+                                int address = inst.getDestination() / 4;
                                 int offset = 0;
                                 while (address >= 0) {
                                     memoryTable.getModel().setValueAt(inst.getResult(), address, MEMORY_TABLE_VALUE + offset);
@@ -620,6 +606,7 @@ public class MainDisplay extends javax.swing.JFrame {
                         break;
                     case W:
                         writing -= 1;
+                        releaseMemoryAddress(inst);
                         releaseDestination(inst);
                         releaseSourceRegisters(inst);
                         releaseInstruction(inst);
@@ -635,6 +622,38 @@ public class MainDisplay extends javax.swing.JFrame {
         if (registersInUse.containsKey(inst)) {
             registersInUse.remove(inst);
         }
+    }
+
+    private void releaseMemoryAddress(Instruction inst) {
+        int address = inst.getMemoryAddressUsed();
+        if (addressesInUse.containsValue(address)) {
+            addressesInUse.values().remove(address);
+        }
+    }
+
+    private void reserveMemoryAddress(Instruction inst) {
+        int address = inst.getMemoryAddressUsed();
+        if (inst.getMemoryAddressUsed() > 0) {
+            if (addressesInUse.containsValue(address)) {
+                Instruction other = findAddressOwner(inst, address);
+                if (other != null) {
+                    log("address in use by " + other.getRawInstruction());
+                }
+            }
+            addressesInUse.put(inst, address);
+        }
+    }
+
+    private Instruction findAddressOwner(Instruction inst, int address) {
+        for (Entry<Instruction, Integer> entry : addressesInUse.entrySet()) {
+            if (entry.getValue() == address) {
+                if (entry.getKey().equals(inst)) {
+                    continue;
+                }
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     private void reserveSourceRegisters(Instruction inst) {
@@ -710,7 +729,16 @@ public class MainDisplay extends javax.swing.JFrame {
             otherIsDest = other.getRegisterUse() == DESTINATION;
             log(inst, SOURCE2);
         }
-        return !destRegBusy && !src1RegBusy && !src2RegBusy;
+
+        boolean memoryConflict = false;
+        int address = inst.getMemoryAddressUsed();
+        if (address != 0) {
+            Instruction i = findAddressOwner(inst, address);
+            if (i != null) {
+                memoryConflict = i.getPcRow() < inst.getPcRow();
+            }
+        }
+        return !destRegBusy && !src1RegBusy && !src2RegBusy && !memoryConflict;
     }
 
     private void log(Instruction inst, int sourceType) {

@@ -32,6 +32,8 @@ public class Instruction {
     private int pc_row;
     private JTable pipeline;
     private String rawInstruction;
+    private boolean isLoadMemoryInstruction = false;
+    private int memoryAddressUsed;
 
     public Instruction(String str, JTable registerTable, JTable memoryTable, JTable pipeline) {
         this.immAddress = 0;
@@ -77,6 +79,7 @@ public class Instruction {
                 operand = new LoadMemory(individualWords[2]);
                 opcode = operand.getOpcode();
                 instructionType = INSTRUCTION_TYPE.I;
+                isLoadMemoryInstruction = true;
                 break;
             case "loadb":
                 operand = new LoadByte(individualWords[2]);
@@ -112,6 +115,20 @@ public class Instruction {
                 rtValue = Integer.parseInt(operand.getSource2().toString());
             }
         }
+
+        if (this.isWriteOperation) {
+            Store st = (Store) operand;
+            this.memoryAddressUsed = st.getWriteAddress();
+        } else if (this.isLoadMemoryInstruction) {
+            LoadMemory lm = (LoadMemory) operand;
+            memoryAddressUsed = lm.getOffset();
+        } else {
+            memoryAddressUsed = 0;
+        }
+    }
+
+    public int getMemoryAddressUsed() {
+        return memoryAddressUsed;
     }
 
     public String getRawInstruction() {
@@ -209,8 +226,10 @@ public class Instruction {
 
         if (instructionType == INSTRUCTION_TYPE.I || instructionType == INSTRUCTION_TYPE.R) {
             if (operand.loadsMemory()) {
-                String rawMemory = memoryTable.getModel().getValueAt(Integer.parseInt(operand.getSource1().toString()), MainDisplay.MEMORY_TABLE_VALUE).toString();
-                operand.setSource1(Integer.parseInt(rawMemory));
+                LoadMemory lm = (LoadMemory) operand;
+                int calculatedAddress = (lm.getOffset() + (int) registerTable.getModel().getValueAt(lm.getAddressToRead(), MainDisplay.REGISTER_TABLE_VALUE)) / 4;
+                String rawMemory = memoryTable.getModel().getValueAt(calculatedAddress, MainDisplay.MEMORY_TABLE_VALUE).toString();
+                return Integer.parseInt(rawMemory);
             } else if (!operand.usesConstants()) {
                 rsValue = Integer.parseInt(operand.getSource1().toString());
                 String rawMemory = registerTable.getModel().getValueAt(rsValue, MainDisplay.REGISTER_TABLE_VALUE).toString();
