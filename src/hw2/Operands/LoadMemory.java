@@ -31,7 +31,7 @@ public class LoadMemory extends Load {
       return offset;
    }
    
-   public int getAddressToRead(){
+   public int getRegWithAddress(){
        return addressToRead;
    }
 

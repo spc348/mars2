@@ -206,7 +206,7 @@ public class MainDisplay extends javax.swing.JFrame {
 
         textEditor.setColumns(20);
         textEditor.setRows(5);
-        textEditor.setText("loadb $t0 100\nstor $t0 0($t0)\nloadm $t3 0($t0)");
+        textEditor.setText("loadb $t0 100\nadd $t2 0 13\nstor $t2 0($t0)\nloadm $t3 0($t0)");
         textEditor.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 textEditorKeyTyped(evt);
@@ -534,7 +534,6 @@ public class MainDisplay extends javax.swing.JFrame {
                             }
                             if (inst.getInstructionType() == INSTRUCTION_TYPE.R) {
                                 registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
-
                             }
                             decoding -= 1;
                             executing += 1;
@@ -560,9 +559,11 @@ public class MainDisplay extends javax.swing.JFrame {
                                 }
                             }
                             inst.setStage(PIPELINE_STAGE.M);
-                            if (inst.getInstructionType() == INSTRUCTION_TYPE.I && !inst.getIsWriteOperation()) {
+                            if (inst.getIsLoadOperation()) {
                                 registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
-                                releaseMemoryAddress(inst);
+                                if (fastMode == FASTMODE_ENABLED) {
+                                    releaseMemoryAddress(inst);
+                                }
                             }
                             executing -= 1;
                             memorizing += 1;
@@ -580,6 +581,7 @@ public class MainDisplay extends javax.swing.JFrame {
                         if (checkCanAdvance(inst) && writing < 1) {
                             inst.setStage(PIPELINE_STAGE.W);
                             if (inst.getIsWriteOperation()) {
+                                reserveMemoryAddress(inst);
                                 int address = inst.getDestination() / 4;
                                 int offset = 0;
                                 while (address >= 0) {
@@ -591,6 +593,8 @@ public class MainDisplay extends javax.swing.JFrame {
                             }
                             if (fastMode == FASTMODE_ENABLED && inst.getInstructionType() == INSTRUCTION_TYPE.I) {
                                 reserveDestination(inst);
+                            } else if (fastMode == FASTMODE_DISABLED && inst.getIsLoadOperation()) {
+                                releaseMemoryAddress(inst);
                             }
                             memorizing -= 1;
                             writing += 1;
@@ -731,11 +735,13 @@ public class MainDisplay extends javax.swing.JFrame {
         }
 
         boolean memoryConflict = false;
-        int address = inst.getMemoryAddressUsed();
-        if (address != 0) {
-            Instruction i = findAddressOwner(inst, address);
-            if (i != null) {
-                memoryConflict = i.getPcRow() < inst.getPcRow();
+        if (inst.getIsWriteOperation() || inst.getIsLoadOperation()) {
+            int address = inst.getMemoryAddressUsed();
+            if (address != 0) {
+                Instruction i = findAddressOwner(inst, address);
+                if (i != null) {
+                    memoryConflict = i.getPcRow() < inst.getPcRow();
+                }
             }
         }
         return !destRegBusy && !src1RegBusy && !src2RegBusy && !memoryConflict;

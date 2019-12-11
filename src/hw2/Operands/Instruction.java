@@ -115,20 +115,22 @@ public class Instruction {
                 rtValue = Integer.parseInt(operand.getSource2().toString());
             }
         }
-
-        if (this.isWriteOperation) {
-            Store st = (Store) operand;
-            this.memoryAddressUsed = st.getWriteAddress();
-        } else if (this.isLoadMemoryInstruction) {
-            LoadMemory lm = (LoadMemory) operand;
-            memoryAddressUsed = lm.getOffset();
-        } else {
-            memoryAddressUsed = 0;
-        }
     }
 
     public int getMemoryAddressUsed() {
-        return memoryAddressUsed;
+        int addr = 0;
+        if (this.getIsLoadOperation()) {
+            LoadMemory lm = (LoadMemory) operand;
+            String registerContents = registerTable.getModel().getValueAt(lm.getRegWithAddress(), MainDisplay.REGISTER_TABLE_VALUE).toString();
+            addr = Integer.parseInt(registerContents);
+            addr += lm.getOffset();
+        } else if (this.getIsWriteOperation()) {
+            Store sr = (Store) operand;
+            String registerContents = registerTable.getModel().getValueAt(sr.getRegisterNumberToRead(), MainDisplay.REGISTER_TABLE_VALUE).toString();
+            addr = Integer.parseInt(registerContents);
+            addr += sr.getOffset();
+        }
+        return addr;
     }
 
     public String getRawInstruction() {
@@ -227,7 +229,8 @@ public class Instruction {
         if (instructionType == INSTRUCTION_TYPE.I || instructionType == INSTRUCTION_TYPE.R) {
             if (operand.loadsMemory()) {
                 LoadMemory lm = (LoadMemory) operand;
-                int calculatedAddress = (lm.getOffset() + (int) registerTable.getModel().getValueAt(lm.getAddressToRead(), MainDisplay.REGISTER_TABLE_VALUE)) / 4;
+                String registerContents = registerTable.getModel().getValueAt(lm.getRegWithAddress(), MainDisplay.REGISTER_TABLE_VALUE).toString();
+                int calculatedAddress = (lm.getOffset() + (Integer.parseInt(registerContents) / 4));
                 String rawMemory = memoryTable.getModel().getValueAt(calculatedAddress, MainDisplay.MEMORY_TABLE_VALUE).toString();
                 return Integer.parseInt(rawMemory);
             } else if (!operand.usesConstants()) {
@@ -252,6 +255,10 @@ public class Instruction {
 
     public boolean getIsWriteOperation() {
         return isWriteOperation;
+    }
+
+    public boolean getIsLoadOperation() {
+        return isLoadMemoryInstruction;
     }
 
     public INSTRUCTION_TYPE getInstructionType() {

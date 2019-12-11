@@ -23,10 +23,6 @@ public class Store extends Operand<Byte> {
         source1Reg = this.registerNumberToRead;
         source2Reg = -1;
     }
-    
-    public int getWriteAddress(){
-        return this.registerNumberToRead + this.offset;
-    }
 
     private short twosComplement(String number) {
         return Short.parseShort(number);
