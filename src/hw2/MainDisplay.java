@@ -559,7 +559,7 @@ public class MainDisplay extends javax.swing.JFrame {
                                 }
                             }
                             inst.setStage(PIPELINE_STAGE.M);
-                            if (inst.getIsLoadOperation()) {
+                            if (inst.getInstructionType() == INSTRUCTION_TYPE.I && !inst.getIsWriteOperation()) {
                                 registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
                                 if (fastMode == FASTMODE_ENABLED) {
                                     releaseMemoryAddress(inst);
