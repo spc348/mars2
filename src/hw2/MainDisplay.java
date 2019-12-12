@@ -544,6 +544,7 @@ public class MainDisplay extends javax.swing.JFrame {
                             }
                             if (fastMode == FASTMODE_ENABLED && inst.getInstructionType() == INSTRUCTION_TYPE.R) {
                                 registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
+                                releaseDestination(inst);
                             }
                             decoding -= 1;
                             executing += 1;
@@ -1018,17 +1019,19 @@ public class MainDisplay extends javax.swing.JFrame {
     }
 
     private void updatePC(int index, Instruction inst) {
-        registerBuffer.getModel().setValueAt(index, 29, REGISTER_TABLE_VALUE);
+//        registerBuffer.getModel().setValueAt(index, 29, REGISTER_TABLE_VALUE);
 //        String old = codeModel.getModel().getValueAt(index, 0).toString();
 //        codeModel.getModel().setValueAt("> " + old, index, 0);
     }
 
     private void releaseSourceRegisters(Instruction inst) {
-        if (registersInUse.containsValue(inst.getSource1Reg())) {
-            registersInUse.values().remove(inst.getSource1Reg());
+       RegisterInfo r = new RegisterInfo(inst.getSource1Reg(), SOURCE, inst);
+        if (registersInUse.containsValue(r)) {
+            registersInUse.values().remove(r);
         }
-        if (registersInUse.containsValue(inst.getSource2Reg())) {
-            registersInUse.values().remove(inst.getSource2Reg());
+        r = new RegisterInfo(inst.getSource2Reg(), SOURCE, inst);
+        if (registersInUse.containsValue(r)) {
+            registersInUse.values().remove(r);
         }
     }
 }
