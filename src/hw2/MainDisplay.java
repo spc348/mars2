@@ -10,6 +10,7 @@ import hw2.Operands.Instruction;
 import hw2.Operands.PIPELINE_STAGE;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import javax.swing.event.TableModelListener;
@@ -79,8 +80,15 @@ public class MainDisplay extends javax.swing.JFrame {
     }
 
     private void staticHazardCheck(HashMap<Instruction, Integer[]> tempInstructions) {
-        int loadCommands = 0;
-        int storeCommands = 0;
+        ArrayList<Integer> loadingRegisters = new ArrayList<>();
+        ArrayList<Integer> computingRegisters = new ArrayList<>();
+
+        ArrayList<Integer> registers = new ArrayList<>();
+        for (Integer[] reg : tempInstructions.values()) {
+            registers.add(reg[0]);
+            registers.add(reg[1]);
+            registers.add(reg[2]);
+        }
 
     }
 
@@ -532,7 +540,7 @@ public class MainDisplay extends javax.swing.JFrame {
                                     reserveMemoryAddress(inst);
                                 }
                             }
-                            if (inst.getInstructionType() == INSTRUCTION_TYPE.R) {
+                            if (fastMode == FASTMODE_ENABLED && inst.getInstructionType() == INSTRUCTION_TYPE.R) {
                                 registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
                             }
                             decoding -= 1;
@@ -559,10 +567,15 @@ public class MainDisplay extends javax.swing.JFrame {
                                 }
                             }
                             inst.setStage(PIPELINE_STAGE.M);
-                            if (inst.getInstructionType() == INSTRUCTION_TYPE.I && !inst.getIsWriteOperation()) {
-                                registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
-                                if (fastMode == FASTMODE_ENABLED) {
-                                    releaseMemoryAddress(inst);
+                            if (inst.getIsWriteOperation()) {
+                                reserveMemoryAddress(inst);
+                                int address = inst.getDestination() / 4;
+                                int offset = 0;
+                                while (address >= 0) {
+                                    memoryTable.getModel().setValueAt(inst.getResult(), address, MEMORY_TABLE_VALUE + offset);
+                                    memoryTable.repaint();
+                                    address -= 1;
+                                    offset += 1;
                                 }
                             }
                             executing -= 1;
@@ -580,15 +593,13 @@ public class MainDisplay extends javax.swing.JFrame {
                     case M:
                         if (checkCanAdvance(inst) && writing < 1) {
                             inst.setStage(PIPELINE_STAGE.W);
-                            if (inst.getIsWriteOperation()) {
-                                reserveMemoryAddress(inst);
-                                int address = inst.getDestination() / 4;
-                                int offset = 0;
-                                while (address >= 0) {
-                                    memoryTable.getModel().setValueAt(inst.getResult(), address, MEMORY_TABLE_VALUE + offset);
-                                    memoryTable.repaint();
-                                    address -= 1;
-                                    offset += 1;
+                            if (fastMode == FASTMODE_DISABLED && inst.getInstructionType() == INSTRUCTION_TYPE.R) {
+                                registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
+                            }
+                            if (inst.getInstructionType() == INSTRUCTION_TYPE.I && !inst.getIsWriteOperation()) {
+                                registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
+                                if (fastMode == FASTMODE_ENABLED) {
+                                    releaseMemoryAddress(inst);
                                 }
                             }
                             if (fastMode == FASTMODE_ENABLED && inst.getInstructionType() == INSTRUCTION_TYPE.I) {
