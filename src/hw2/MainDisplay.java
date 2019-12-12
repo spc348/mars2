@@ -501,20 +501,22 @@ public class MainDisplay extends javax.swing.JFrame {
             Instruction inst = instructions.get(instructionIndex);
             inst.setPcRow(instructionIndex);
             if (null == inst.getStage()) {
-                if (fetching < 1) {
+                if (fetching < 1 && checkCanAdvance(inst)) {
                     inst.setStage(PIPELINE_STAGE.F);
                     advance(inst);
                     fetching += 1;
                 } else {
-                    if (inst.getStage() != null) {
-                        log(inst, inst.getStage());
+                    if (fetching > 1) {
+                        if (inst.getStage() != null) {
+                            log(inst, inst.getStage());
+                        }
                     }
                     stall(inst);
                 }
             } else {
                 switch (inst.getStage()) {
                     case F:
-                        if (checkCanAdvance(inst) && decoding < 1) {
+                        if (decoding < 1 && checkCanAdvance(inst)) {
                             inst.setStage(PIPELINE_STAGE.D);
                             if (fastMode == FASTMODE_DISABLED) {
                                 reserveSourceRegisters(inst);
@@ -531,7 +533,7 @@ public class MainDisplay extends javax.swing.JFrame {
                         }
                         break;
                     case D:
-                        if (checkCanAdvance(inst) && executing < 1) {
+                        if (executing < 1 && checkCanAdvance(inst)) {
                             inst.setStage(PIPELINE_STAGE.E);
                             reserveSourceRegisters(inst);
                             if (fastMode == FASTMODE_DISABLED) {
@@ -556,17 +558,14 @@ public class MainDisplay extends javax.swing.JFrame {
                         }
                         break;
                     case E:
-                        if (checkCanAdvance(inst) && memorizing < 1) {
-                            if (fastMode == FASTMODE_DISABLED) {
-                                reserveSourceRegisters(inst);
-                                reserveDestination(inst);
-                            } else if (fastMode == FASTMODE_ENABLED) {
+                        if (memorizing < 1 && checkCanAdvance(inst)) {
+                            inst.setStage(PIPELINE_STAGE.M);
+                            if (fastMode == FASTMODE_ENABLED) {
                                 releaseSourceRegisters(inst);
                                 if (inst.getInstructionType() == INSTRUCTION_TYPE.R) {
-                                    releaseDestination(inst);
+                                    releaseSourceRegisters(inst);
                                 }
                             }
-                            inst.setStage(PIPELINE_STAGE.M);
                             if (inst.getIsWriteOperation()) {
                                 reserveMemoryAddress(inst);
                                 int address = inst.getDestination() / 4;
@@ -577,6 +576,7 @@ public class MainDisplay extends javax.swing.JFrame {
                                     address -= 1;
                                     offset += 1;
                                 }
+                                releaseMemoryAddress(inst);
                             }
                             executing -= 1;
                             memorizing += 1;
@@ -595,6 +595,7 @@ public class MainDisplay extends javax.swing.JFrame {
                             inst.setStage(PIPELINE_STAGE.W);
                             if (fastMode == FASTMODE_DISABLED && inst.getInstructionType() == INSTRUCTION_TYPE.R) {
                                 registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
+                                releaseDestination(inst);
                             }
                             if (inst.getInstructionType() == INSTRUCTION_TYPE.I && !inst.getIsWriteOperation()) {
                                 registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
@@ -604,7 +605,8 @@ public class MainDisplay extends javax.swing.JFrame {
                             }
                             if (fastMode == FASTMODE_ENABLED && inst.getInstructionType() == INSTRUCTION_TYPE.I) {
                                 reserveDestination(inst);
-                            } else if (fastMode == FASTMODE_DISABLED && inst.getIsLoadOperation()) {
+                            }
+                            if (inst.getIsLoadOperation()) {
                                 releaseMemoryAddress(inst);
                             }
                             memorizing -= 1;
@@ -713,49 +715,65 @@ public class MainDisplay extends javax.swing.JFrame {
     }
 
     private boolean checkCanAdvance(Instruction inst) {
-        boolean otherIsDest = false;
-        RegisterInfo other, r;
+
         if (registersInUse.isEmpty()) {
             return true;
         }
-        r = new RegisterInfo(inst.getDestReg(), DESTINATION, inst);
-        boolean destRegBusy = false;
-        other = compareInstruction(inst, inst.getDestReg(), r);
-        if (other != null) {
-            destRegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
-            otherIsDest = other.getRegisterUse() == DESTINATION;
-            log(inst, DESTINATION);
-        }
-
-        r = new RegisterInfo(inst.getSource1Reg(), SOURCE, inst);
-        other = compareInstruction(inst, inst.getSource1Reg(), r);
-        boolean src1RegBusy = false;
-        if (other != null) {
-            src1RegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
-            otherIsDest = other.getRegisterUse() == DESTINATION;
-            log(inst, SOURCE1);
-        }
-
-        r = new RegisterInfo(inst.getSource2Reg(), SOURCE, inst);
-        boolean src2RegBusy = false;
-        other = compareInstruction(inst, inst.getSource2Reg(), r);
-        if (other != null) {
-            src2RegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
-            otherIsDest = other.getRegisterUse() == DESTINATION;
-            log(inst, SOURCE2);
-        }
-
-        boolean memoryConflict = false;
-        if (inst.getIsWriteOperation() || inst.getIsLoadOperation()) {
-            int address = inst.getMemoryAddressUsed();
-            if (address != 0) {
-                Instruction i = findAddressOwner(inst, address);
-                if (i != null) {
-                    memoryConflict = i.getPcRow() < inst.getPcRow();
+        if (inst.getStage() == null) {
+            if ((memorizing > 0 || writing > 0)) {
+                for (Instruction i : instructions) {
+                    if (i.getPcRow() < inst.getPcRow() && i.getIsWriteOperation() && i.getStage() == PIPELINE_STAGE.M) {
+                        return false;
+                    }
+                    if (i.getPcRow() < inst.getPcRow() && i.getIsLoadOperation() && i.getStage() == PIPELINE_STAGE.W) {
+                        return false;
+                    }
                 }
             }
+        } else {
+            boolean otherIsDest = false;
+            RegisterInfo other, r;
+            r = new RegisterInfo(inst.getDestReg(), DESTINATION, inst);
+            boolean destRegBusy = false;
+            other = compareInstruction(inst, inst.getDestReg(), r);
+            if (other != null) {
+                destRegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
+                otherIsDest = other.getRegisterUse() == DESTINATION;
+                log(inst, DESTINATION);
+            }
+
+            r = new RegisterInfo(inst.getSource1Reg(), SOURCE, inst);
+            other = compareInstruction(inst, inst.getSource1Reg(), r);
+            boolean src1RegBusy = false;
+            if (other != null) {
+                src1RegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
+                otherIsDest = other.getRegisterUse() == DESTINATION;
+                log(inst, SOURCE1);
+            }
+
+            r = new RegisterInfo(inst.getSource2Reg(), SOURCE, inst);
+            boolean src2RegBusy = false;
+            other = compareInstruction(inst, inst.getSource2Reg(), r);
+            if (other != null) {
+                src2RegBusy = other.getInstruction().getPcRow() < inst.getPcRow();
+                otherIsDest = other.getRegisterUse() == DESTINATION;
+                log(inst, SOURCE2);
+            }
+
+            boolean memoryConflict = false;
+            if (inst.getIsWriteOperation() || inst.getIsLoadOperation()) {
+                int address = inst.getMemoryAddressUsed();
+                if (address != 0) {
+                    Instruction i = findAddressOwner(inst, address);
+                    if (i != null) {
+                        memoryConflict = i.getPcRow() < inst.getPcRow();
+                        log("Memory conflict at " + address);
+                    }
+                }
+            }
+            return !destRegBusy && !src1RegBusy && !src2RegBusy && !memoryConflict;
         }
-        return !destRegBusy && !src1RegBusy && !src2RegBusy && !memoryConflict;
+        return true;
     }
 
     private void log(Instruction inst, int sourceType) {
@@ -800,9 +818,7 @@ public class MainDisplay extends javax.swing.JFrame {
 
     private void stall(Instruction inst) {
         inst.incrementIndex();
-        if (inst.getStage() != null) {
-            pipeline.getModel().setValueAt("s", instructionIndex, inst.getPcIndex());
-        }
+        pipeline.getModel().setValueAt("s", instructionIndex, inst.getPcIndex());
         updatePC(instructionIndex, inst);
     }
 
