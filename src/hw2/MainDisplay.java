@@ -576,7 +576,9 @@ public class MainDisplay extends javax.swing.JFrame {
                                     address -= 1;
                                     offset += 1;
                                 }
-                                releaseMemoryAddress(inst);
+                                if (fastMode == FASTMODE_ENABLED) {
+                                    releaseMemoryAddress(inst);
+                                }
                             }
                             executing -= 1;
                             memorizing += 1;
@@ -593,21 +595,27 @@ public class MainDisplay extends javax.swing.JFrame {
                     case M:
                         if (checkCanAdvance(inst) && writing < 1) {
                             inst.setStage(PIPELINE_STAGE.W);
-                            if (fastMode == FASTMODE_DISABLED && inst.getInstructionType() == INSTRUCTION_TYPE.R) {
-                                registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
-                                releaseDestination(inst);
-                            }
-                            if (inst.getInstructionType() == INSTRUCTION_TYPE.I && !inst.getIsWriteOperation()) {
-                                registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
-                                if (fastMode == FASTMODE_ENABLED) {
+                            if (fastMode == FASTMODE_DISABLED) {
+                                if (inst.getIsLoadOperation() || inst.getIsWriteOperation()) {
                                     releaseMemoryAddress(inst);
                                 }
-                            }
-                            if (fastMode == FASTMODE_ENABLED && inst.getInstructionType() == INSTRUCTION_TYPE.I) {
-                                reserveDestination(inst);
-                            }
-                            if (inst.getIsLoadOperation()) {
-                                releaseMemoryAddress(inst);
+                                if (inst.getInstructionType() == INSTRUCTION_TYPE.R) {
+                                    registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
+                                    releaseDestination(inst);
+                                }
+                                if (inst.getInstructionType() == INSTRUCTION_TYPE.I && !inst.getIsWriteOperation()) {
+                                    registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
+                                }
+                            } else {
+                                if (inst.getInstructionType() == INSTRUCTION_TYPE.I) {
+                                    reserveDestination(inst);
+                                }
+                                if (inst.getInstructionType() == INSTRUCTION_TYPE.I && !inst.getIsWriteOperation()) {
+                                    registerBuffer.getModel().setValueAt(inst.getResult(), inst.getDestination(), REGISTER_TABLE_VALUE);
+                                    if (fastMode == FASTMODE_ENABLED) {
+                                        releaseMemoryAddress(inst);
+                                    }
+                                }
                             }
                             memorizing -= 1;
                             writing += 1;
@@ -621,6 +629,7 @@ public class MainDisplay extends javax.swing.JFrame {
                             stall(inst);
                         }
                         break;
+
                     case W:
                         writing -= 1;
                         releaseMemoryAddress(inst);
